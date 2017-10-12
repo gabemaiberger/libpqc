@@ -1,0 +1,18 @@
+ifeq ($(ARCH),x86)
+CC=gcc
+LL=ld
+else ifeq ($(ARCH),arm)
+CC=/usr/bin/arm-linux-gnueabihf-gcc-6
+LL=/usr/bin/arm-linux-gnueabihf-ld
+else
+CC=gcc
+LL=ld
+endif
+
+INCDIR=include/
+
+%.o: %.c
+	$(CC) -c -g -I$(INCDIR) -o $@ $^
+
+%-shared.o: %.c
+	$(CC) -c -g -fPIC -I$(INCDIR) -o $@ $^
