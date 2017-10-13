@@ -16,10 +16,18 @@
 
 include Make.rules
 
-all: libpqc.so
+all: libpqc.so deb
+
+deb:
+	cp libpqc.so package/usr/lib/x86_64-linux-gnu/
+	cp $(INCDIR)*.h package/usr/include/libpqc/
+	cp manpages/*.3 package/usr/share/man/man3/
+	gzip package/usr/share/man/man3/*.3
+	chmod -R 755 package
+	dpkg-deb -b package libpqc.deb
 
 libpqc.so: r3d-shared.o r3d_modes-shared.o
 	$(LL) -shared -fPIC -o $@ $^
 
 clean:
-	rm -rf *.o *.so
+	rm -rf *.o *.so *.deb package/usr/lib/x86_64-linux-gnu/*.so package/usr/include/libpqc/*.h package/usr/share/man/man3/*.gz
