@@ -43,4 +43,4 @@ clean-build:
 	rm -r *.o *.so
 
 clean-deb:
-	rm -r *.deb package/usr/*
+	rm -r *.deb package/usr/
