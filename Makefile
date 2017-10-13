@@ -18,7 +18,18 @@ include Make.rules
 
 all: libpqc.so deb
 
+libpqc.so: r3d-shared.o r3d_modes-shared.o
+	$(LL) -shared -fPIC -o $@ $^
+
 deb:
+	mkdir package/usr/
+	mkdir package/usr/include
+	mkdir package/usr/include/libpqc
+	mkdir package/usr/lib/
+	mkdir package/usr/lib/x86_64-linux-gnu
+	mkdir package/usr/share/
+	mkdir package/usr/share/man/
+	mkdir package/usr/share/man/man3/
 	cp libpqc.so package/usr/lib/x86_64-linux-gnu/
 	cp $(INCDIR)*.h package/usr/include/libpqc/
 	cp manpages/*.3 package/usr/share/man/man3/
@@ -26,8 +37,10 @@ deb:
 	chmod -R 755 package
 	dpkg-deb -b package libpqc.deb
 
-libpqc.so: r3d-shared.o r3d_modes-shared.o
-	$(LL) -shared -fPIC -o $@ $^
+clean: clean-build clean-deb
 
-clean:
-	rm -rf *.o *.so *.deb package/usr/lib/x86_64-linux-gnu/*.so package/usr/include/libpqc/*.h package/usr/share/man/man3/*.gz
+clean-build:
+	rm -r *.o *.so
+
+clean-deb:
+	rm -r *.deb package/usr/*
