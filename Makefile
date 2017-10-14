@@ -18,7 +18,7 @@ include Make.rules
 
 all: libpqc.so deb
 
-libpqc.so: r3d-shared.o r3d_modes-shared.o
+libpqc.so: r3d-shared.o r3d_modes-shared.o sidh-shared.o sha3-shared.o pbkdf2-shared.o tcp_steg-shared.o
 	$(LL) -shared -fPIC -o $@ $^
 
 deb:
