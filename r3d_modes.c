@@ -59,7 +59,7 @@ void r3d_encrypt_ecb(unsigned char *plaintext, unsigned char *key, unsigned char
 	memcpy(key_block, key, 512); //copy the cryptographic key to the key block
 
 	int i;
-	for(i=0; i<=block_num; i++){
+	for(i=0; i<block_num; i++){
 		//copy a block from the plaintext buffer to the plaintext block
 		memcpy(plaintext_block, plaintext+(i*512), 512);
 
@@ -84,7 +84,7 @@ void r3d_decrypt_ecb(unsigned char *ciphertext, unsigned char *key, unsigned cha
 	memcpy(key_block, key, 512); //copy the cryptographic key to the key block
 
 	int i;
-	for(i=0; i<=block_num; i++){
+	for(i=0; i<block_num; i++){
 		//copy a block from the ciphertext buffer to the ciphertext block
 		memcpy(ciphertext_block, ciphertext+(i*512), 512);
 
@@ -115,7 +115,7 @@ void r3d_encrypt_ctr(unsigned char *plaintext, unsigned char *key, unsigned char
 
 	int i;
 	int j;
-	for(i=0; i<=block_num; i++){
+	for(i=0; i<block_num; i++){
 		memset(i_block, i, 512); //set the counter block to the value of integer i
 
 		//copy a block from the plaintext buffer to the plaintext block
@@ -158,7 +158,7 @@ void r3d_decrypt_ctr(unsigned char *ciphertext, unsigned char *key, unsigned cha
 
 	int i;
 	int j;
-	for(i=0; i<=block_num; i++){
+	for(i=0; i<block_num; i++){
 		memset(i_block, i, 512); //set the counter block to the value of integer i
 
 		//copy a block from the ciphertext buffer to the ciphertext block
@@ -314,7 +314,7 @@ void r3d_encrypt_xex(unsigned char *plaintext, unsigned char *key, unsigned char
 
 	int i;
 	int j;
-	for(i=0; i<=block_num; i++){
+	for(i=0; i<block_num; i++){
 		memset(i_block, i, 512); //set the counter block to the value of integer i
 
 		//encrypt the counter block to produce the x block
@@ -363,7 +363,7 @@ void r3d_decrypt_xex(unsigned char *ciphertext, unsigned char *key, unsigned cha
 
 	int i;
 	int j;
-	for(i=0; i<=block_num; i++){
+	for(i=0; i<block_num; i++){
 		memset(i_block, i, 512); //set the counter block to the value of integer i
 
 		//encrypt the counter block to produce the x block
