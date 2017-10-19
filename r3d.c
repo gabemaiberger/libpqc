@@ -165,7 +165,7 @@ void r3d_encrypt_block(unsigned char plaintext_block[512], unsigned char key[512
 	AddRoundKey(master_key);
 
 	//one round of encryption
-	for(i=1; i<=49; i++){
+	for(i=1; i<=16; i++){
 		SubBytes();
 		ShiftRows();
 		ShiftSlices();
@@ -179,7 +179,7 @@ void r3d_encrypt_block(unsigned char plaintext_block[512], unsigned char key[512
 	SubBytes();
 	ShiftRows();
 	ShiftSlices();
-	GetRoundKey(50);
+	GetRoundKey(17);
 	AddRoundKey(round_key);
 
 	//copy the state into the ciphertext block
@@ -210,11 +210,11 @@ void r3d_decrypt_block(unsigned char ciphertext_block[512], unsigned char key[51
 
 	//initial round
 	ExpandKey();
-	GetRoundKey(50);
+	GetRoundKey(17);
 	AddRoundKey(round_key);
 
 	//one round of decryption
-	for(i=49; i>=1; i--){
+	for(i=16; i>=1; i--){
 		InvShiftSlices();
 		InvShiftRows();
 		InvSubBytes();
@@ -591,7 +591,7 @@ void ExpandKey(){
 	}
 
 	int r_i;
-	for(r_i=1; r_i<=50; r_i++){
+	for(r_i=1; r_i<=17; r_i++){
 		for(k=0; k<8; k++){
 			if(k==0){
 				//copy the first column from the final slice of the

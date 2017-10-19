@@ -28,7 +28,7 @@ endif
 INCDIR=include/
 
 %.o: %.c
-	$(CC) -c -g -I$(INCDIR) -o $@ $^
+	$(CC) -c -I$(INCDIR) -o $@ $^
 
 %-shared.o: %.c
-	$(CC) -c -g -fPIC -I$(INCDIR) -o $@ $^
+	$(CC) -c -fPIC -I$(INCDIR) -o $@ $^
