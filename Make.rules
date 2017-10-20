@@ -25,10 +25,10 @@ CC=gcc
 LL=ld
 endif
 
-INCDIR=include/
+INCDIRS=-Iinclude/ -I/usr/lib/jvm/java-8-openjdk-amd64/include/ -I/usr/lib/jvm/java-8-openjdk-amd64/include/linux
 
 %.o: %.c
-	$(CC) -c -I$(INCDIR) -o $@ $^
+	$(CC) -c $(INCDIRS) -o $@ $^
 
 %-shared.o: %.c
-	$(CC) -c -fPIC -I$(INCDIR) -o $@ $^
+	$(CC) -c -fPIC $(INCDIRS) -o $@ $^

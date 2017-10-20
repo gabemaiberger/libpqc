@@ -21,6 +21,9 @@ all: libpqc.so deb
 libpqc.so: r3d-shared.o r3d_modes-shared.o sidh-shared.o sha3-shared.o pbkdf2-shared.o tcp_steg-shared.o
 	$(LL) -shared -fPIC -lm -lpthread -o $@ $^
 
+libpqc-java.so: r3d-shared.o r3d_modes-shared.o sidh-shared.o sha3-shared.o pbkdf2-shared.o tcp_steg-shared.o java-shared.o
+	$(LL) -shared -fPIC -lm -lpthread -o $@ $^
+
 deb:
 	mkdir -p package/usr/
 	mkdir -p package/usr/include
@@ -30,8 +33,8 @@ deb:
 	mkdir -p package/usr/share/
 	mkdir -p package/usr/share/man/
 	mkdir -p package/usr/share/man/man3/
-	cp libpqc.so package/usr/lib/x86_64-linux-gnu/
-	cp $(INCDIR)*.h package/usr/include/libpqc/
+	cp *.so package/usr/lib/x86_64-linux-gnu/
+	cp include/*.h package/usr/include/libpqc/
 	cp manpages/*.3 package/usr/share/man/man3/
 	gzip -f package/usr/share/man/man3/*.3
 	chmod -R 755 package
