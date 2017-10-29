@@ -36,32 +36,40 @@ unsigned long long int RC[24]={
 };
 
 unsigned char *sha3_512(unsigned char *data, int size);
-unsigned char *sha3_pad(unsigned char *data);
+unsigned char *sha3_pad(unsigned char *data, int size);
 unsigned char *sha3_permute_block(unsigned char *data);
 unsigned int parity(unsigned int n);
 
 unsigned char *sha3_512(unsigned char *data, int size){
 	unsigned char *P;
+	int i;
+	int j;
 
  	if(size%72!=0){
-		P=sha3_pad(data);
-		size+=(size%72);
+		P=sha3_pad(data, size);
+		size+=(72-size%72);
 	}
 
-	printf("%i\n", size);
+	for(i=0; i<size; i++){
+		printf("%x ", P[i]);
+	}
+	printf("\n\n");
 
 	int n=(size/72);
 
-	printf("%i\n", n);
+	printf("%i\n\n", n);
 
 	unsigned char *p[n];
 
-	int i;
-	int j;
-	for(i=0; i<=n; i++){
+	for(i=0; i<n; i++){
 		p[i]=malloc(72);
-		strncpy(p[i], P+(i*72), 72);
+		strncpy(p[i], &P[i*72], 72);
 	}
+
+	for(i=0; i<72; i++){
+		printf("%x ", p[0][72]);
+	}
+	printf("\n\n");
 
 	unsigned char *S=malloc(72);
 	bzero(S, 72);
@@ -82,12 +90,9 @@ unsigned char *sha3_512(unsigned char *data, int size){
 	return Z;
 }
 
-unsigned char *sha3_pad(unsigned char *data){
+unsigned char *sha3_pad(unsigned char *data, int size){
 	int i;
-	int size=sizeof(data)/sizeof(data[0]);
 	int margin=(72-size%72);
-
-	printf("%i\n", margin);
 
 	unsigned char *P=malloc(size+margin);
 
@@ -129,26 +134,31 @@ unsigned char *sha3_permute_block(unsigned char *data){
 
 		int t=0;
 		int t_inc=1;
-		k=0;
-		for(i=0; i<5; i++){
+		/*for(i=0; i<5; i++){
 			if(i==0){
 				for(j=1; j<5; j++){
-					state[i][j][k]=state[i][j][k-((t+1)*(t+2)/2)];
+					for(k=0; k<8; k++){
+						state[i][j][k]=state[i][j][k-((t+1)*(t+2)/2)];
+					}
 					t_inc++;
 					t+=t_inc;
 				}
 			} else {
 				for(j=0; j<5; j++){
-					state[i][j][k]=state[i][j][k-((t+1)*(t+2)/2)];
+					for(k=0; k<8; k++){
+						state[i][j][k]=state[i][j][k-((t+1)*(t+2)/2)];
+					}
 					t_inc++;
 					t+=t_inc;
 				}
 			}
-		}
+		}*/
 
 		for(i=0; i<5; i++){
 			for(j=0; j<5; j++){
-				state[i][j][0]=state[j][3*i+j][0];
+				for(k=0; k<8; k++){
+					state[i][j][k]=state[j][3*i+j][k];
+				}
 			}
 		}
 

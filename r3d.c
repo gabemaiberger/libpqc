@@ -165,7 +165,7 @@ void r3d_encrypt_block(unsigned char plaintext_block[512], unsigned char key[512
 	AddRoundKey(master_key);
 
 	//one round of encryption
-	for(i=1; i<=16; i++){
+	for(i=1; i<=14; i++){
 		SubBytes();
 		ShiftRows();
 		ShiftSlices();
@@ -179,7 +179,7 @@ void r3d_encrypt_block(unsigned char plaintext_block[512], unsigned char key[512
 	SubBytes();
 	ShiftRows();
 	ShiftSlices();
-	GetRoundKey(17);
+	GetRoundKey(15);
 	AddRoundKey(round_key);
 
 	//copy the state into the ciphertext block
@@ -210,11 +210,11 @@ void r3d_decrypt_block(unsigned char ciphertext_block[512], unsigned char key[51
 
 	//initial round
 	ExpandKey();
-	GetRoundKey(17);
+	GetRoundKey(15);
 	AddRoundKey(round_key);
 
 	//one round of decryption
-	for(i=16; i>=1; i--){
+	for(i=14; i>=1; i--){
 		InvShiftSlices();
 		InvShiftRows();
 		InvSubBytes();
@@ -365,37 +365,37 @@ void MixColumns(){
 
 	for(k=0; k<8; k++){
 		for(i=0; i<8; i++){
-				state[k][0][i]=gmul(temp_state[k][0][i], 2)^gmul(temp_state[k][1][i], 1)^gmul(temp_state[k][2][i], 3)^ \
-				gmul(temp_state[k][3][i], 1)^gmul(temp_state[k][4][i], 1)^gmul(temp_state[k][5][i], 1)^ \
-				gmul(temp_state[k][6][i], 1)^gmul(temp_state[k][7][i], 1);
+				state[k][0][i]=gmul(temp_state[k][0][i], 2)^temp_state[k][1][i]^gmul(temp_state[k][2][i], 3)^ \
+				temp_state[k][3][i]^temp_state[k][4][i]^temp_state[k][5][i]^ \
+				temp_state[k][6][i]^temp_state[k][7][i];
 
-				state[k][1][i]=gmul(temp_state[k][0][i], 1)^gmul(temp_state[k][1][i], 2)^gmul(temp_state[k][2][i], 1)^ \
-				gmul(temp_state[k][3][i], 3)^gmul(temp_state[k][4][i], 1)^gmul(temp_state[k][5][i], 1)^ \
-				gmul(temp_state[k][6][i], 1)^gmul(temp_state[k][7][i], 1);
+				state[k][1][i]=temp_state[k][0][i]^gmul(temp_state[k][1][i], 2)^temp_state[k][2][i]^ \
+				gmul(temp_state[k][3][i], 3)^temp_state[k][4][i]^temp_state[k][5][i]^ \
+				temp_state[k][6][i]^temp_state[k][7][i];
 
-				state[k][2][i]=gmul(temp_state[k][0][i], 1)^gmul(temp_state[k][1][i], 1)^gmul(temp_state[k][2][i], 2)^ \
-				gmul(temp_state[k][3][i], 1)^gmul(temp_state[k][4][i], 3)^gmul(temp_state[k][5][i], 1)^ \
-				gmul(temp_state[k][6][i], 1)^gmul(temp_state[k][7][i], 1);
+				state[k][2][i]=temp_state[k][0][i]^temp_state[k][1][i]^gmul(temp_state[k][2][i], 2)^ \
+				temp_state[k][3][i]^gmul(temp_state[k][4][i], 3)^temp_state[k][5][i]^ \
+				temp_state[k][6][i]^temp_state[k][7][i];
 
-				state[k][3][i]=gmul(temp_state[k][0][i], 1)^gmul(temp_state[k][1][i], 1)^gmul(temp_state[k][2][i], 1)^ \
-				gmul(temp_state[k][3][i], 2)^gmul(temp_state[k][4][i], 1)^gmul(temp_state[k][5][i], 3)^ \
-				gmul(temp_state[k][6][i], 1)^gmul(temp_state[k][7][i], 1);
+				state[k][3][i]=temp_state[k][0][i]^temp_state[k][1][i]^temp_state[k][2][i]^ \
+				gmul(temp_state[k][3][i], 2)^temp_state[k][4][i]^gmul(temp_state[k][5][i], 3)^ \
+				temp_state[k][6][i]^temp_state[k][7][i];
 
-				state[k][4][i]=gmul(temp_state[k][0][i], 1)^gmul(temp_state[k][1][i], 1)^gmul(temp_state[k][2][i], 1)^ \
-				gmul(temp_state[k][3][i], 1)^gmul(temp_state[k][4][i], 2)^gmul(temp_state[k][5][i], 1)^ \
-				gmul(temp_state[k][6][i], 3)^gmul(temp_state[k][7][i], 1);
+				state[k][4][i]=temp_state[k][0][i]^temp_state[k][1][i]^temp_state[k][2][i]^ \
+				temp_state[k][3][i]^gmul(temp_state[k][4][i], 2)^temp_state[k][5][i]^ \
+				gmul(temp_state[k][6][i], 3)^temp_state[k][7][i];
 
-				state[k][5][i]=gmul(temp_state[k][0][i], 1)^gmul(temp_state[k][1][i], 1)^gmul(temp_state[k][2][i], 1)^ \
-				gmul(temp_state[k][3][i], 1)^gmul(temp_state[k][4][i], 1)^gmul(temp_state[k][5][i], 2)^ \
-				gmul(temp_state[k][6][i], 1)^gmul(temp_state[k][7][i], 3);
+				state[k][5][i]=temp_state[k][0][i]^temp_state[k][1][i]^temp_state[k][2][i]^ \
+				temp_state[k][3][i]^temp_state[k][4][i]^gmul(temp_state[k][5][i], 2)^ \
+				temp_state[k][6][i]^gmul(temp_state[k][7][i], 3);
 
-				state[k][6][i]=gmul(temp_state[k][0][i], 3)^gmul(temp_state[k][1][i], 1)^gmul(temp_state[k][2][i], 1)^ \
-				gmul(temp_state[k][3][i], 1)^gmul(temp_state[k][4][i], 1)^gmul(temp_state[k][5][i], 1)^ \
-				gmul(temp_state[k][6][i], 2)^gmul(temp_state[k][7][i], 1);
+				state[k][6][i]=gmul(temp_state[k][0][i], 3)^temp_state[k][1][i]^temp_state[k][2][i]^ \
+				temp_state[k][3][i]^temp_state[k][4][i]^temp_state[k][5][i]^ \
+				gmul(temp_state[k][6][i], 2)^temp_state[k][7][i];
 
-				state[k][7][i]=gmul(temp_state[k][0][i], 1)^gmul(temp_state[k][1][i], 3)^gmul(temp_state[k][2][i], 1)^
-				gmul(temp_state[k][3][i], 1)^gmul(temp_state[k][4][i], 1)^gmul(temp_state[k][5][i], 1)^ \
-				gmul(temp_state[k][6][i], 1)^gmul(temp_state[k][7][i], 2);
+				state[k][7][i]=temp_state[k][0][i]^gmul(temp_state[k][1][i], 3)^temp_state[k][2][i]^
+				temp_state[k][3][i]^temp_state[k][4][i]^temp_state[k][5][i]^ \
+				temp_state[k][6][i]^gmul(temp_state[k][7][i], 2);
 		}
 	}
 }
@@ -418,37 +418,37 @@ void InvMixColumns(){
 
 	for(k=0; k<8; k++){
 		for(i=0; i<8; i++){
-				state[k][0][i]=gmul(temp_state[k][0][i], 14)^gmul(temp_state[k][1][i], 1)^gmul(temp_state[k][2][i], 11)^ \
-				gmul(temp_state[k][3][i], 1)^gmul(temp_state[k][4][i], 13)^gmul(temp_state[k][5][i], 1)^ \
-				gmul(temp_state[k][6][i], 9)^gmul(temp_state[k][7][i], 1);
+				state[k][0][i]=gmul(temp_state[k][0][i], 14)^temp_state[k][1][i]^gmul(temp_state[k][2][i], 11)^ \
+				temp_state[k][3][i]^gmul(temp_state[k][4][i], 13)^temp_state[k][5][i]^ \
+				gmul(temp_state[k][6][i], 9)^temp_state[k][7][i];
 
-				state[k][1][i]=gmul(temp_state[k][0][i], 1)^gmul(temp_state[k][1][i], 14)^gmul(temp_state[k][2][i], 1)^ \
-				gmul(temp_state[k][3][i], 11)^gmul(temp_state[k][4][i], 1)^gmul(temp_state[k][5][i], 13)^ \
-				gmul(temp_state[k][6][i], 1)^gmul(temp_state[k][7][i], 9);
+				state[k][1][i]=temp_state[k][0][i]^gmul(temp_state[k][1][i], 14)^temp_state[k][2][i]^ \
+				gmul(temp_state[k][3][i], 11)^temp_state[k][4][i]^gmul(temp_state[k][5][i], 13)^ \
+				temp_state[k][6][i]^gmul(temp_state[k][7][i], 9);
 
-				state[k][2][i]=gmul(temp_state[k][0][i], 9)^gmul(temp_state[k][1][i], 1)^gmul(temp_state[k][2][i], 14)^ \
-				gmul(temp_state[k][3][i], 1)^gmul(temp_state[k][4][i], 11)^gmul(temp_state[k][5][i], 1)^ \
-				gmul(temp_state[k][6][i], 13)^gmul(temp_state[k][7][i], 1);
+				state[k][2][i]=gmul(temp_state[k][0][i], 9)^temp_state[k][1][i]^gmul(temp_state[k][2][i], 14)^ \
+				temp_state[k][3][i]^gmul(temp_state[k][4][i], 11)^temp_state[k][5][i]^ \
+				gmul(temp_state[k][6][i], 13)^temp_state[k][7][i];
 
-				state[k][3][i]=gmul(temp_state[k][0][i], 1)^gmul(temp_state[k][1][i], 9)^gmul(temp_state[k][2][i], 1)^ \
-				gmul(temp_state[k][3][i], 14)^gmul(temp_state[k][4][i],1)^gmul(temp_state[k][5][i],11)^ \
-				gmul(temp_state[k][6][i],1)^gmul(temp_state[k][7][i],13);
+				state[k][3][i]=temp_state[k][0][i]^gmul(temp_state[k][1][i], 9)^temp_state[k][2][i]^ \
+				gmul(temp_state[k][3][i], 14)^temp_state[k][4][i]^gmul(temp_state[k][5][i],11)^ \
+				temp_state[k][6][i]^gmul(temp_state[k][7][i],13);
 
-				state[k][4][i]=gmul(temp_state[k][0][i], 13)^gmul(temp_state[k][1][i], 1)^gmul(temp_state[k][2][i], 9)^ \
-				gmul(temp_state[k][3][i], 1)^gmul(temp_state[k][4][i], 14)^gmul(temp_state[k][5][i], 1)^ \
-				gmul(temp_state[k][6][i], 11)^gmul(temp_state[k][7][i], 1);
+				state[k][4][i]=gmul(temp_state[k][0][i], 13)^temp_state[k][1][i]^gmul(temp_state[k][2][i], 9)^ \
+				temp_state[k][3][i]^gmul(temp_state[k][4][i], 14)^temp_state[k][5][i]^ \
+				gmul(temp_state[k][6][i], 11)^temp_state[k][7][i];
 
-				state[k][5][i]=gmul(temp_state[k][0][i], 1)^gmul(temp_state[k][1][i], 13)^gmul(temp_state[k][2][i], 1)^ \
-				gmul(temp_state[k][3][i], 9)^gmul(temp_state[k][4][i], 1)^gmul(temp_state[k][5][i], 14)^ \
-				gmul(temp_state[k][6][i], 1)^gmul(temp_state[k][7][i], 11);
+				state[k][5][i]=temp_state[k][0][i]^gmul(temp_state[k][1][i], 13)^temp_state[k][2][i]^ \
+				gmul(temp_state[k][3][i], 9)^temp_state[k][4][i]^gmul(temp_state[k][5][i], 14)^ \
+				temp_state[k][6][i]^gmul(temp_state[k][7][i], 11);
 
-				state[k][6][i]=gmul(temp_state[k][0][i], 11)^gmul(temp_state[k][1][i], 1)^gmul(temp_state[k][2][i], 13)^ \
-				gmul(temp_state[k][3][i], 1)^gmul(temp_state[k][4][i], 9)^gmul(temp_state[k][5][i], 1)^ \
-				gmul(temp_state[k][6][i], 14)^gmul(temp_state[k][7][i], 1);
+				state[k][6][i]=gmul(temp_state[k][0][i], 11)^temp_state[k][1][i]^gmul(temp_state[k][2][i], 13)^ \
+				temp_state[k][3][i]^gmul(temp_state[k][4][i], 9)^temp_state[k][5][i]^ \
+				gmul(temp_state[k][6][i], 14)^temp_state[k][7][i];
 
-				state[k][7][i]=gmul(temp_state[k][0][i], 1)^gmul(temp_state[k][1][i], 11)^gmul(temp_state[k][2][i], 1)^ \
-				gmul(temp_state[k][3][i], 13)^gmul(temp_state[k][4][i], 1)^gmul(temp_state[k][5][i], 9)^ \
-				gmul(temp_state[k][6][i], 1)^gmul(temp_state[k][7][i], 14);
+				state[k][7][i]=temp_state[k][0][i]^gmul(temp_state[k][1][i], 11)^temp_state[k][2][i]^ \
+				gmul(temp_state[k][3][i], 13)^temp_state[k][4][i]^gmul(temp_state[k][5][i], 9)^ \
+				temp_state[k][6][i]^gmul(temp_state[k][7][i], 14);
 		}
 	}
 }
@@ -471,37 +471,37 @@ void MixSlices(){
 
 	for(j=0; j<8; j++){
 		for(i=0; i<8; i++){
-				state[0][j][i]=gmul(temp_state[0][j][i], 2)^gmul(temp_state[1][j][i], 1)^gmul(temp_state[2][j][i], 3)^ \
-				gmul(temp_state[3][j][i], 1)^gmul(temp_state[4][j][i], 1)^gmul(temp_state[5][j][i], 1)^ \
-				gmul(temp_state[6][j][i], 1)^gmul(temp_state[7][j][i], 1);
+				state[0][j][i]=gmul(temp_state[0][j][i], 2)^temp_state[1][j][i]^gmul(temp_state[2][j][i], 3)^ \
+				temp_state[3][j][i]^temp_state[4][j][i]^temp_state[5][j][i]^ \
+				temp_state[6][j][i]^temp_state[7][j][i];
 
-				state[1][j][i]=gmul(temp_state[0][j][i], 1)^gmul(temp_state[1][j][i], 2)^gmul(temp_state[2][j][i], 1)^ \
-				gmul(temp_state[3][j][i], 3)^gmul(temp_state[4][j][i], 1)^gmul(temp_state[5][j][i], 1)^ \
-				gmul(temp_state[6][j][i], 1)^gmul(temp_state[7][j][i], 1);
+				state[1][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 2)^temp_state[2][j][i]^ \
+				gmul(temp_state[3][j][i], 3)^temp_state[4][j][i]^temp_state[5][j][i]^ \
+				temp_state[6][j][i]^temp_state[7][j][i];
 
-				state[2][j][i]=gmul(temp_state[0][j][i], 1)^gmul(temp_state[1][j][i], 1)^gmul(temp_state[2][j][i], 2)^ \
-				gmul(temp_state[3][j][i], 1)^gmul(temp_state[4][j][i], 3)^gmul(temp_state[5][j][i], 1)^ \
-				gmul(temp_state[6][j][i], 1)^gmul(temp_state[7][j][i], 1);
+				state[2][j][i]=temp_state[0][j][i]^temp_state[1][j][i]^gmul(temp_state[2][j][i], 2)^ \
+				temp_state[3][j][i]^gmul(temp_state[4][j][i], 3)^temp_state[5][j][i]^ \
+				temp_state[6][j][i]^temp_state[7][j][i];
 
-				state[3][j][i]=gmul(temp_state[0][j][i], 1)^gmul(temp_state[1][j][i], 1)^gmul(temp_state[2][j][i], 1)^ \
-				gmul(temp_state[3][j][i], 2)^gmul(temp_state[4][j][i], 1)^gmul(temp_state[5][j][i], 3)^ \
-				gmul(temp_state[6][j][i], 1)^gmul(temp_state[7][j][i], 1);
+				state[3][j][i]=temp_state[0][j][i]^temp_state[1][j][i]^temp_state[2][j][i]^ \
+				gmul(temp_state[3][j][i], 2)^temp_state[4][j][i]^gmul(temp_state[5][j][i], 3)^ \
+				temp_state[6][j][i]^temp_state[7][j][i];
 
-				state[4][j][i]=gmul(temp_state[0][j][i], 1)^gmul(temp_state[1][j][i], 1)^gmul(temp_state[2][j][i], 1)^ \
-				gmul(temp_state[3][j][i], 1)^gmul(temp_state[4][j][i], 2)^gmul(temp_state[5][j][i], 1)^ \
-				gmul(temp_state[6][j][i], 3)^gmul(temp_state[7][j][i], 1);
+				state[4][j][i]=temp_state[0][j][i]^temp_state[1][j][i]^temp_state[2][j][i]^ \
+				temp_state[3][j][i]^gmul(temp_state[4][j][i], 2)^temp_state[5][j][i]^ \
+				gmul(temp_state[6][j][i], 3)^temp_state[7][j][i];
 
-				state[5][j][i]=gmul(temp_state[0][j][i], 1)^gmul(temp_state[1][j][i], 1)^gmul(temp_state[2][j][i], 1)^ \
-				gmul(temp_state[3][j][i], 1)^gmul(temp_state[4][j][i], 1)^gmul(temp_state[5][j][i], 2)^ \
-				gmul(temp_state[6][j][i], 1)^gmul(temp_state[7][j][i], 3);
+				state[5][j][i]=temp_state[0][j][i]^temp_state[1][j][i]^temp_state[2][j][i]^ \
+				temp_state[3][j][i]^temp_state[4][j][i]^gmul(temp_state[5][j][i], 2)^ \
+				temp_state[6][j][i]^gmul(temp_state[7][j][i], 3);
 
-				state[6][j][i]=gmul(temp_state[0][j][i], 3)^gmul(temp_state[1][j][i], 1)^gmul(temp_state[2][j][i], 1)^ \
-				gmul(temp_state[3][j][i], 1)^gmul(temp_state[4][j][i], 1)^gmul(temp_state[5][j][i], 1)^ \
-				gmul(temp_state[6][j][i], 2)^gmul(temp_state[7][j][i], 1);
+				state[6][j][i]=gmul(temp_state[0][j][i], 3)^temp_state[1][j][i]^temp_state[2][j][i]^ \
+				temp_state[3][j][i]^temp_state[4][j][i]^temp_state[5][j][i]^ \
+				gmul(temp_state[6][j][i], 2)^temp_state[7][j][i];
 
-				state[7][j][i]=gmul(temp_state[0][j][i], 1)^gmul(temp_state[1][j][i], 3)^gmul(temp_state[2][j][i], 1)^
-				gmul(temp_state[3][j][i], 1)^gmul(temp_state[4][j][i], 1)^gmul(temp_state[5][j][i], 1)^ \
-				gmul(temp_state[6][j][i], 1)^gmul(temp_state[7][j][i], 2);
+				state[7][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 3)^temp_state[2][j][i]^
+				temp_state[3][j][i]^temp_state[4][j][i]^temp_state[5][j][i]^ \
+				temp_state[6][j][i]^gmul(temp_state[7][j][i], 2);
 		}
 	}
 }
@@ -524,37 +524,37 @@ void InvMixSlices(){
 
 	for(j=0; j<8; j++){
 		for(i=0; i<8; i++){
-				state[0][j][i]=gmul(temp_state[0][j][i], 14)^gmul(temp_state[1][j][i], 1)^gmul(temp_state[2][j][i], 11)^ \
-				gmul(temp_state[3][j][i], 1)^gmul(temp_state[4][j][i], 13)^gmul(temp_state[5][j][i], 1)^ \
-				gmul(temp_state[6][j][i], 9)^gmul(temp_state[7][j][i], 1);
+				state[0][j][i]=gmul(temp_state[0][j][i], 14)^temp_state[1][j][i]^gmul(temp_state[2][j][i], 11)^ \
+				temp_state[3][j][i]^gmul(temp_state[4][j][i], 13)^temp_state[5][j][i]^ \
+				gmul(temp_state[6][j][i], 9)^temp_state[7][j][i];
 
-				state[1][j][i]=gmul(temp_state[0][j][i], 1)^gmul(temp_state[1][j][i], 14)^gmul(temp_state[2][j][i], 1)^ \
-				gmul(temp_state[3][j][i], 11)^gmul(temp_state[4][j][i], 1)^gmul(temp_state[5][j][i], 13)^ \
-				gmul(temp_state[6][j][i], 1)^gmul(temp_state[7][j][i], 9);
+				state[1][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 14)^temp_state[2][j][i]^ \
+				gmul(temp_state[3][j][i], 11)^temp_state[4][j][i]^gmul(temp_state[5][j][i], 13)^ \
+				temp_state[6][j][i]^gmul(temp_state[7][j][i], 9);
 
-				state[2][j][i]=gmul(temp_state[0][j][i], 9)^gmul(temp_state[1][j][i], 1)^gmul(temp_state[2][j][i], 14)^ \
-				gmul(temp_state[3][j][i], 1)^gmul(temp_state[4][j][i], 11)^gmul(temp_state[5][j][i], 1)^ \
-				gmul(temp_state[6][j][i], 13)^gmul(temp_state[7][j][i], 1);
+				state[2][j][i]=gmul(temp_state[0][j][i], 9)^temp_state[1][j][i]^gmul(temp_state[2][j][i], 14)^ \
+				temp_state[3][j][i]^gmul(temp_state[4][j][i], 11)^temp_state[5][j][i]^ \
+				gmul(temp_state[6][j][i], 13)^temp_state[7][j][i];
 
-				state[3][j][i]=gmul(temp_state[0][j][i], 1)^gmul(temp_state[1][j][i], 9)^gmul(temp_state[2][j][i], 1)^ \
-				gmul(temp_state[3][j][i], 14)^gmul(temp_state[4][j][i],1)^gmul(temp_state[5][j][i],11)^ \
-				gmul(temp_state[6][j][i],1)^gmul(temp_state[7][j][i],13);
+				state[3][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 9)^temp_state[2][j][i]^ \
+				gmul(temp_state[3][j][i], 14)^temp_state[4][j][i]^gmul(temp_state[5][j][i],11)^ \
+				temp_state[6][j][i]^gmul(temp_state[7][j][i],13);
 
-				state[4][j][i]=gmul(temp_state[0][j][i], 13)^gmul(temp_state[1][j][i], 1)^gmul(temp_state[2][j][i], 9)^ \
-				gmul(temp_state[3][j][i], 1)^gmul(temp_state[4][j][i], 14)^gmul(temp_state[5][j][i], 1)^ \
-				gmul(temp_state[6][j][i], 11)^gmul(temp_state[7][j][i], 1);
+				state[4][j][i]=gmul(temp_state[0][j][i], 13)^temp_state[1][j][i]^gmul(temp_state[2][j][i], 9)^ \
+				temp_state[3][j][i]^gmul(temp_state[4][j][i], 14)^temp_state[5][j][i]^ \
+				gmul(temp_state[6][j][i], 11)^temp_state[7][j][i];
 
-				state[5][j][i]=gmul(temp_state[0][j][i], 1)^gmul(temp_state[1][j][i], 13)^gmul(temp_state[2][j][i], 1)^ \
-				gmul(temp_state[3][j][i], 9)^gmul(temp_state[4][j][i], 1)^gmul(temp_state[5][j][i], 14)^ \
-				gmul(temp_state[6][j][i], 1)^gmul(temp_state[7][j][i], 11);
+				state[5][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 13)^temp_state[2][j][i]^ \
+				gmul(temp_state[3][j][i], 9)^temp_state[4][j][i]^gmul(temp_state[5][j][i], 14)^ \
+				temp_state[6][j][i]^gmul(temp_state[7][j][i], 11);
 
-				state[6][j][i]=gmul(temp_state[0][j][i], 11)^gmul(temp_state[1][j][i], 1)^gmul(temp_state[2][j][i], 13)^ \
-				gmul(temp_state[3][j][i], 1)^gmul(temp_state[4][j][i], 9)^gmul(temp_state[5][j][i], 1)^ \
-				gmul(temp_state[6][j][i], 14)^gmul(temp_state[7][j][i], 1);
+				state[6][j][i]=gmul(temp_state[0][j][i], 11)^temp_state[1][j][i]^gmul(temp_state[2][j][i], 13)^ \
+				temp_state[3][j][i]^gmul(temp_state[4][j][i], 9)^temp_state[5][j][i]^ \
+				gmul(temp_state[6][j][i], 14)^temp_state[7][j][i];
 
-				state[7][j][i]=gmul(temp_state[0][j][i], 1)^gmul(temp_state[1][j][i], 11)^gmul(temp_state[2][j][i], 1)^ \
-				gmul(temp_state[3][j][i], 13)^gmul(temp_state[4][j][i], 1)^gmul(temp_state[5][j][i], 9)^ \
-				gmul(temp_state[6][j][i], 1)^gmul(temp_state[7][j][i], 14);
+				state[7][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 11)^temp_state[2][j][i]^ \
+				gmul(temp_state[3][j][i], 13)^temp_state[4][j][i]^gmul(temp_state[5][j][i], 9)^ \
+				temp_state[6][j][i]^gmul(temp_state[7][j][i], 14);
 		}
 	}
 }
@@ -591,7 +591,7 @@ void ExpandKey(){
 	}
 
 	int r_i;
-	for(r_i=1; r_i<=17; r_i++){
+	for(r_i=1; r_i<=15; r_i++){
 		for(k=0; k<8; k++){
 			if(k==0){
 				//copy the first column from the final slice of the
