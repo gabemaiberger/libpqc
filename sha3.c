@@ -57,17 +57,16 @@ unsigned char *sha3_512(unsigned char *data, int size){
 
 	int n=(size/72);
 
-	printf("%i\n\n", n);
-
 	unsigned char *p[n];
 
 	for(i=0; i<n; i++){
 		p[i]=malloc(72);
-		strncpy(p[i], &P[i*72], 72);
+		bzero(p[i], 72);
+		strncpy(p[i], &P[i+(72*n)], 72);
 	}
 
 	for(i=0; i<72; i++){
-		printf("%x ", p[0][72]);
+		printf("%x ", p[0][i]);
 	}
 	printf("\n\n");
 
@@ -78,7 +77,7 @@ unsigned char *sha3_512(unsigned char *data, int size){
 	for(i=0; i<n; i++){
 		strncat(p[i], "\0", c);
 		for(j=0; j<72; j++){
-			S[j%72]^=p[i][j];
+			S[j]^=p[i][j];
 		}
 		sha3_permute_block(S);
 	}

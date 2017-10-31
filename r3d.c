@@ -677,9 +677,7 @@ unsigned char gmul(unsigned char x, unsigned char y){
 	unsigned char z;
 	unsigned char hi_bit_set;
 
-	if(y==1){
-		z=x;
-	} else if(y==2){
+	if(y==2){
 		z=x<<1;
 		if((z>>8)>0){
 			z^=0x11B;

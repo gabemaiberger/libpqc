@@ -305,10 +305,6 @@ void r3d_decrypt_xex(unsigned char *ciphertext, unsigned char *key, unsigned cha
 			plaintext_block[j]^=x_block[j];
 		}
 
-		for(j=0; j<512; j++){
-			x_block[j]=gf256[x_block[j]];
-		}
-
 		//copy the plaintext block to the plaintext buffer
 		memcpy(plaintext+(i*512), plaintext_block, 512);
 
@@ -330,8 +326,6 @@ void r3d_encrypt_ctr_mt(unsigned char *plaintext, unsigned char *key, unsigned c
 	for(i=0; i<=block_num; i+=num_threads){
 		for(j=0; j<num_threads; j++){
 			args[j].i=i+j;
-		}
-		for(j=0; j<num_threads; j++){
 			pthread_create(&tid[j], NULL, ctr_encrypt_thread, &args[j]);
 		}
 		for(j=0; j<num_threads; j++){
@@ -355,9 +349,7 @@ void r3d_decrypt_ctr_mt(unsigned char *ciphertext, unsigned char *key, unsigned 
 	for(i=0; i<=block_num; i+=num_threads){
 		for(j=0; j<num_threads; j++){
 			args[j].i=i+j;
-		}
-		for(j=0; j<num_threads; j++){
-			pthread_create(&tid[j], NULL, ctr_encrypt_thread, &args[j]);
+			pthread_create(&tid[j], NULL, ctr_decrypt_thread, &args[j]);
 		}
 		for(j=0; j<num_threads; j++){
 			pthread_join(tid[j], NULL);
@@ -515,7 +507,7 @@ void *xex_encrypt_thread(void *vargp){
 
 	//copy the ciphertext block to the ciphertext buffer
 	memcpy(args->ciphertext+(args->i*512), ciphertext_block, 512);
-	pthread_exit(NULL);
+	pthread_exit(0);
 }
 
 void *xex_decrypt_thread(void *vargp){
@@ -558,5 +550,5 @@ void *xex_decrypt_thread(void *vargp){
 
 	//copy the plaintext block to the plaintext buffer
 	memcpy(args->plaintext+(args->i*512), plaintext_block, 512);
-	pthread_exit(NULL);
+	pthread_exit(0);
 }
