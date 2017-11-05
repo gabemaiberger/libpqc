@@ -65,10 +65,10 @@ unsigned char *sha3_512(unsigned char *data, int size){
 		strncpy(p[i], &P[i+(72*n)], 72);
 	}
 
-	for(i=0; i<72; i++){
+	/*for(i=0; i<72; i++){
 		printf("%x ", p[0][i]);
 	}
-	printf("\n\n");
+	printf("\n\n");*/
 
 	unsigned char *S=malloc(72);
 	bzero(S, 72);
@@ -133,7 +133,7 @@ unsigned char *sha3_permute_block(unsigned char *data){
 
 		int t=0;
 		int t_inc=1;
-		/*for(i=0; i<5; i++){
+		for(k=0; k<8; k++){
 			if(i==0){
 				for(j=1; j<5; j++){
 					for(k=0; k<8; k++){
@@ -151,12 +151,12 @@ unsigned char *sha3_permute_block(unsigned char *data){
 					t+=t_inc;
 				}
 			}
-		}*/
+		}
 
 		for(i=0; i<5; i++){
 			for(j=0; j<5; j++){
 				for(k=0; k<8; k++){
-					state[i][j][k]=state[j][3*i+j][k];
+					state[i][j][k]=state[j][2*i+3*j][k];
 				}
 			}
 		}
@@ -164,7 +164,7 @@ unsigned char *sha3_permute_block(unsigned char *data){
 		for(i=0; i<5; i++){
 			for(j=0; j<5; j++){
 				for(k=0; k<8; k++){
-					state[i][j][k]^=((!state[i][j+1][k])&&state[i][j+2][k]);
+					state[i][j][k]^=(~state[i][j+1][k] & state[i][j+2][k]);
 				}
 			}
 		}
