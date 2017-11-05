@@ -1,6 +1,7 @@
 Package: libpqc
 Version: 1.0.0
+Section: libs
 Architecture: amd64
 Maintainer: Gabe Maiberger <gabrielmaiberger@gmail.com>
-Depends: libc6
 Description: Post Quantum Cryptographic Library
+Depends: libc6 (>= 2.26)
