@@ -12,6 +12,8 @@ JNIEXPORT void JNICALL Java_gabe_cryptography_LibPQC_r3d_1encrypt_1ecb
 
 JNIEXPORT void JNICALL Java_gabe_cryptography_LibPQC_r3d_1decrypt_1ecb
   (JNIEnv *env, jobject obj, jbooleanArray ciphertext, jbooleanArray key, jbooleanArray plaintext){
+	int size=sizeof(&ciphertext)/sizeof((&ciphertext)[0]);
+	r3d_decrypt_ecb((unsigned char *)ciphertext, (unsigned char *)key, (unsigned char *)plaintext, size);
 	return;
 }
 
