@@ -27,8 +27,5 @@ endif
 
 INCDIRS=-Iinclude/ -I/usr/lib/jvm/java-8-openjdk-amd64/include/ -I/usr/lib/jvm/java-8-openjdk-amd64/include/linux
 
-%.o: %.c
-	$(CC) -c $(INCDIRS) -o $@ $^
-
 %-shared.o: %.c
-	$(CC) -c -fPIC $(INCDIRS) -o $@ $^
+	$(CC) -c -fPIC -Wall $(INCDIRS) -o $@ $^
