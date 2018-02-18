@@ -21,8 +21,8 @@ all: libpqc.so libpqc-java.so deb
 libpqc.so: r3d-shared.o r3d_modes-shared.o sidh-shared.o sha3-shared.o pbkdf2-shared.o tcp_steg-shared.o
 	$(LL) -shared -fPIC -lm -lpthread -o $@ $^
 
-libpqc-java.so: r3d-shared.o r3d_modes-shared.o sidh-shared.o sha3-shared.o pbkdf2-shared.o tcp_steg-shared.o java-shared.o
-	$(LL) -shared -fPIC -lm -lpthread -o $@ $^
+libpqc-java.so: r3d-shared.o r3d_modes-shared.o java-shared.o
+	$(LL) -shared -fPIC -o $@ $^
 
 deb:
 	mkdir -p package/usr/
