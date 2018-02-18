@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <r3d.h>
 
-JNIEXPORT void JNICALL Java_gabe_cryptography_LibPQC_r3d_1encrypt_1ecb
+JNIEXPORT void JNICALL Java_LibPQC_r3d_1encrypt_1ecb
  (JNIEnv *env, jobject obj, jbyteArray plaintext, jbyteArray key, jbyteArray ciphertext){
 	int size=sizeof(&plaintext)/sizeof((&plaintext)[0]);
 
@@ -41,7 +41,7 @@ JNIEXPORT void JNICALL Java_gabe_cryptography_LibPQC_r3d_1encrypt_1ecb
 	return;
 }
 
-JNIEXPORT void JNICALL Java_gabe_cryptography_LibPQC_r3d_1decrypt_1ecb
+JNIEXPORT void JNICALL Java_LibPQC_r3d_1decrypt_1ecb
   (JNIEnv *env, jobject obj, jbyteArray ciphertext, jbyteArray key, jbyteArray plaintext){
 	int size=sizeof(&ciphertext)/sizeof((&ciphertext)[0]);
 
@@ -59,42 +59,42 @@ JNIEXPORT void JNICALL Java_gabe_cryptography_LibPQC_r3d_1decrypt_1ecb
 	return;
 }
 
-JNIEXPORT void JNICALL Java_gabe_cryptography_LibPQC_r3d_1encrypt_1ctr
+JNIEXPORT void JNICALL Java_LibPQC_r3d_1encrypt_1ctr
   (JNIEnv *env, jobject obj, jbyteArray plaintext, jbyteArray key, jbyteArray iv, jbyteArray ciphertext){
 	return;
 }
 
-JNIEXPORT void JNICALL Java_gabe_cryptography_LibPQC_r3d_1decrypt_1ctr
+JNIEXPORT void JNICALL Java_LibPQC_r3d_1decrypt_1ctr
   (JNIEnv *env, jobject obj, jbyteArray ciphertext, jbyteArray key, jbyteArray iv, jbyteArray plaintext){
 	return;
 }
 
-JNIEXPORT void JNICALL Java_gabe_cryptography_LibPQC_r3d_1encrypt_1ctr_1mt
+JNIEXPORT void JNICALL Java_LibPQC_r3d_1encrypt_1ctr_1mt
   (JNIEnv *env, jobject obj, jbyteArray plaintext, jbyteArray key, jbyteArray iv, jbyteArray ciphertext, jint num_threads){
 	return;
 }
 
-JNIEXPORT void JNICALL Java_gabe_cryptography_LibPQC_r3d_1decrypt_1ctr_1mt
+JNIEXPORT void JNICALL Java_LibPQC_r3d_1decrypt_1ctr_1mt
   (JNIEnv *env, jobject obj, jbyteArray ciphertext, jbyteArray key, jbyteArray iv, jbyteArray plaintext, jint num_threads){
 	return;
 }
 
-JNIEXPORT void JNICALL Java_gabe_cryptography_LibPQC_r3d_1encrypt_1xex
+JNIEXPORT void JNICALL Java_LibPQC_r3d_1encrypt_1xex
   (JNIEnv *env, jobject obj, jbyteArray plaintext, jbyteArray key, jbyteArray ciphertext){
 	return;
 }
 
-JNIEXPORT void JNICALL Java_gabe_cryptography_LibPQC_r3d_1decrypt_1xex
+JNIEXPORT void JNICALL Java_LibPQC_r3d_1decrypt_1xex
   (JNIEnv *env, jobject obj, jbyteArray ciphertext, jbyteArray key, jbyteArray plaintext){
 	return;
 }
 
-JNIEXPORT void JNICALL Java_gabe_cryptography_LibPQC_r3d_1encrypt_1xex_1mt
+JNIEXPORT void JNICALL Java_LibPQC_r3d_1encrypt_1xex_1mt
   (JNIEnv *env, jobject obj, jbyteArray plaintext, jbyteArray key, jbyteArray ciphertext, jint num_threads){
 	return;
 }
 
-JNIEXPORT void JNICALL Java_gabe_cryptography_LibPQC_r3d_1decrypt_1xex_1mt
+JNIEXPORT void JNICALL Java_LibPQC_r3d_1decrypt_1xex_1mt
   (JNIEnv *env, jobject obj, jbyteArray ciphertext, jbyteArray key, jbyteArray plaintext, jint num_threads){
 	return;
 }
