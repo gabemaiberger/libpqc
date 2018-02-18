@@ -26,14 +26,16 @@ libpqc-java.so: r3d-shared.o r3d_modes-shared.o sidh-shared.o sha3-shared.o pbkd
 
 deb:
 	mkdir -p package/usr/
-	mkdir -p package/usr/include
-	mkdir -p package/usr/include/libpqc
+	mkdir -p package/usr/include/
+	mkdir -p package/usr/include/libpqc/
 	mkdir -p package/usr/lib/
-	mkdir -p package/usr/lib/x86_64-linux-gnu
+	mkdir -p package/usr/lib/x86_64-linux-gnu/
+	mkdir -p package/usr/lib/x86_64-linux-gnu/jni/
 	mkdir -p package/usr/share/
 	mkdir -p package/usr/share/man/
 	mkdir -p package/usr/share/man/man3/
-	cp *.so package/usr/lib/x86_64-linux-gnu/
+	cp libpqc.so package/usr/lib/x86_64-linux-gnu/
+	cp libpqc-java.so package/usr/lib/x86_64-linux-gnu/jni/
 	cp include/*.h package/usr/include/libpqc/
 	cp manpages/*.3 package/usr/share/man/man3/
 	gzip -f package/usr/share/man/man3/*.3
