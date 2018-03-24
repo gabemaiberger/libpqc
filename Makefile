@@ -1,5 +1,5 @@
 #libpqc Makefile
-#Copyright (C) 2017 Gabriel Nathan Maiberger
+#Copyright (C) 2017-2018 Gabriel Nathan Maiberger
 
 #This program is free software: you can redistribute it and/or modify
 #it under the terms of the GNU Lesser General Public License as published by
@@ -16,31 +16,42 @@
 
 include Make.rules
 
-all: libpqc.so deb
+all: libpqc.so libpqc-java.so LibPQC.jar deb
 
-libpqc.so: r3d-shared.o r3d_modes-shared.o
+libpqc.so: r3d-shared.o r3d_modes-shared.o sidh-shared.o sha3-shared.o pbkdf2-shared.o tcp_steg-shared.o
+	$(LL) -shared -fPIC -lm -lpthread -o $@ $^
+
+libpqc-java.so: r3d-shared.o r3d_modes-shared.o java-shared.o
 	$(LL) -shared -fPIC -o $@ $^
 
+LibPQC.jar: LibPQC.class
+	jar cvfe $@ LibPQC $^
+
+LibPQC.class: LibPQC.java
+	javac $^
+
 deb:
-	mkdir package/usr/
-	mkdir package/usr/include
-	mkdir package/usr/include/libpqc
-	mkdir package/usr/lib/
-	mkdir package/usr/lib/x86_64-linux-gnu
-	mkdir package/usr/share/
-	mkdir package/usr/share/man/
-	mkdir package/usr/share/man/man3/
+	mkdir -p package/usr/
+	mkdir -p package/usr/include/
+	mkdir -p package/usr/include/libpqc/
+	mkdir -p package/usr/lib/
+	mkdir -p package/usr/lib/x86_64-linux-gnu/
+	mkdir -p package/usr/lib/x86_64-linux-gnu/jni/
+	mkdir -p package/usr/share/
+	mkdir -p package/usr/share/man/
+	mkdir -p package/usr/share/man/man3/
 	cp libpqc.so package/usr/lib/x86_64-linux-gnu/
-	cp $(INCDIR)*.h package/usr/include/libpqc/
+	cp libpqc-java.so package/usr/lib/x86_64-linux-gnu/jni/
+	cp include/*.h package/usr/include/libpqc/
 	cp manpages/*.3 package/usr/share/man/man3/
-	gzip package/usr/share/man/man3/*.3
+	gzip -f package/usr/share/man/man3/*.3
 	chmod -R 755 package
 	dpkg-deb -b package libpqc.deb
 
 clean: clean-build clean-deb
 
 clean-build:
-	rm -r *.o *.so
+	rm -r *.o *.so *.class *.jar
 
 clean-deb:
 	rm -r *.deb package/usr/

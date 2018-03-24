@@ -1,6 +1,6 @@
 /*
 R3D Cipher
-Copyright (C) 2017 Gabriel Nathan Maiberger
+Copyright (C) 2017-2018 Gabriel Nathan Maiberger
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -73,7 +73,7 @@ const unsigned char inv_s[256] = { //inverse substitution box
 0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26, 0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D
 };
 
-const unsigned char rcon[51][8]= { //round constants
+const unsigned char rcon[51][8] = { //round constants
 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -127,7 +127,7 @@ const unsigned char rcon[51][8]= { //round constants
 0x8D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-const unsigned char kcon[8][8]= { //slice constants
+const unsigned char kcon[8][8] = { //slice constants
 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -167,10 +167,12 @@ void r3d_encrypt_block(unsigned char plaintext_block[512], unsigned char key[512
 	//one round of encryption
 	for(i=1; i<=14; i++){
 		SubBytes();
-		ShiftRows();
-		ShiftSlices();
+		if(i % 2 == 0){
+			ShiftSlices();
+		} else {
+			ShiftRows();
+		}
 		MixColumns();
-		MixSlices();
 		GetRoundKey(i);
 		AddRoundKey(round_key);
 	}
@@ -178,7 +180,6 @@ void r3d_encrypt_block(unsigned char plaintext_block[512], unsigned char key[512
 	//final round
 	SubBytes();
 	ShiftRows();
-	ShiftSlices();
 	GetRoundKey(15);
 	AddRoundKey(round_key);
 
@@ -215,17 +216,18 @@ void r3d_decrypt_block(unsigned char ciphertext_block[512], unsigned char key[51
 
 	//one round of decryption
 	for(i=14; i>=1; i--){
-		InvShiftSlices();
-		InvShiftRows();
+		if(i % 2 == 0){
+			InvShiftRows();
+		} else {
+			InvShiftSlices();
+		}
 		InvSubBytes();
 		GetRoundKey(i);
 		AddRoundKey(round_key);
-		InvMixSlices();
 		InvMixColumns();
 	}
 
 	//final round
-	InvShiftSlices();
 	InvShiftRows();
 	InvSubBytes();
 	AddRoundKey(master_key);
@@ -313,7 +315,6 @@ void ShiftSlices(){
 	int i;
 	int j;
 	int k;
-	int l;
 	unsigned char temp[8];
 
 	for(i=0; i<8; i++){
@@ -453,112 +454,6 @@ void InvMixColumns(){
 	}
 }
 
-//mix slices of state
-void MixSlices(){
-	int i;
-	int j;
-	int k;
-
-	unsigned char temp_state[8][8][8];
-
-	for(k=0; k<8; k++){
-		for(j=0; j<8; j++){
-			for(i=0; i<8; i++){
-				temp_state[k][j][i]=state[k][j][i];
-			}
-		}
-	}
-
-	for(j=0; j<8; j++){
-		for(i=0; i<8; i++){
-				state[0][j][i]=gmul(temp_state[0][j][i], 2)^temp_state[1][j][i]^gmul(temp_state[2][j][i], 3)^ \
-				temp_state[3][j][i]^temp_state[4][j][i]^temp_state[5][j][i]^ \
-				temp_state[6][j][i]^temp_state[7][j][i];
-
-				state[1][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 2)^temp_state[2][j][i]^ \
-				gmul(temp_state[3][j][i], 3)^temp_state[4][j][i]^temp_state[5][j][i]^ \
-				temp_state[6][j][i]^temp_state[7][j][i];
-
-				state[2][j][i]=temp_state[0][j][i]^temp_state[1][j][i]^gmul(temp_state[2][j][i], 2)^ \
-				temp_state[3][j][i]^gmul(temp_state[4][j][i], 3)^temp_state[5][j][i]^ \
-				temp_state[6][j][i]^temp_state[7][j][i];
-
-				state[3][j][i]=temp_state[0][j][i]^temp_state[1][j][i]^temp_state[2][j][i]^ \
-				gmul(temp_state[3][j][i], 2)^temp_state[4][j][i]^gmul(temp_state[5][j][i], 3)^ \
-				temp_state[6][j][i]^temp_state[7][j][i];
-
-				state[4][j][i]=temp_state[0][j][i]^temp_state[1][j][i]^temp_state[2][j][i]^ \
-				temp_state[3][j][i]^gmul(temp_state[4][j][i], 2)^temp_state[5][j][i]^ \
-				gmul(temp_state[6][j][i], 3)^temp_state[7][j][i];
-
-				state[5][j][i]=temp_state[0][j][i]^temp_state[1][j][i]^temp_state[2][j][i]^ \
-				temp_state[3][j][i]^temp_state[4][j][i]^gmul(temp_state[5][j][i], 2)^ \
-				temp_state[6][j][i]^gmul(temp_state[7][j][i], 3);
-
-				state[6][j][i]=gmul(temp_state[0][j][i], 3)^temp_state[1][j][i]^temp_state[2][j][i]^ \
-				temp_state[3][j][i]^temp_state[4][j][i]^temp_state[5][j][i]^ \
-				gmul(temp_state[6][j][i], 2)^temp_state[7][j][i];
-
-				state[7][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 3)^temp_state[2][j][i]^
-				temp_state[3][j][i]^temp_state[4][j][i]^temp_state[5][j][i]^ \
-				temp_state[6][j][i]^gmul(temp_state[7][j][i], 2);
-		}
-	}
-}
-
-//inverse mix slices of state
-void InvMixSlices(){
-	int i;
-	int j;
-	int k;
-
-	unsigned char temp_state[8][8][8];
-
-	for(k=0; k<8; k++){
-		for(j=0; j<8; j++){
-			for(i=0; i<8; i++){
-				temp_state[k][j][i]=state[k][j][i];
-			}
-		}
-	}
-
-	for(j=0; j<8; j++){
-		for(i=0; i<8; i++){
-				state[0][j][i]=gmul(temp_state[0][j][i], 14)^temp_state[1][j][i]^gmul(temp_state[2][j][i], 11)^ \
-				temp_state[3][j][i]^gmul(temp_state[4][j][i], 13)^temp_state[5][j][i]^ \
-				gmul(temp_state[6][j][i], 9)^temp_state[7][j][i];
-
-				state[1][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 14)^temp_state[2][j][i]^ \
-				gmul(temp_state[3][j][i], 11)^temp_state[4][j][i]^gmul(temp_state[5][j][i], 13)^ \
-				temp_state[6][j][i]^gmul(temp_state[7][j][i], 9);
-
-				state[2][j][i]=gmul(temp_state[0][j][i], 9)^temp_state[1][j][i]^gmul(temp_state[2][j][i], 14)^ \
-				temp_state[3][j][i]^gmul(temp_state[4][j][i], 11)^temp_state[5][j][i]^ \
-				gmul(temp_state[6][j][i], 13)^temp_state[7][j][i];
-
-				state[3][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 9)^temp_state[2][j][i]^ \
-				gmul(temp_state[3][j][i], 14)^temp_state[4][j][i]^gmul(temp_state[5][j][i],11)^ \
-				temp_state[6][j][i]^gmul(temp_state[7][j][i],13);
-
-				state[4][j][i]=gmul(temp_state[0][j][i], 13)^temp_state[1][j][i]^gmul(temp_state[2][j][i], 9)^ \
-				temp_state[3][j][i]^gmul(temp_state[4][j][i], 14)^temp_state[5][j][i]^ \
-				gmul(temp_state[6][j][i], 11)^temp_state[7][j][i];
-
-				state[5][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 13)^temp_state[2][j][i]^ \
-				gmul(temp_state[3][j][i], 9)^temp_state[4][j][i]^gmul(temp_state[5][j][i], 14)^ \
-				temp_state[6][j][i]^gmul(temp_state[7][j][i], 11);
-
-				state[6][j][i]=gmul(temp_state[0][j][i], 11)^temp_state[1][j][i]^gmul(temp_state[2][j][i], 13)^ \
-				temp_state[3][j][i]^gmul(temp_state[4][j][i], 9)^temp_state[5][j][i]^ \
-				gmul(temp_state[6][j][i], 14)^temp_state[7][j][i];
-
-				state[7][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 11)^temp_state[2][j][i]^ \
-				gmul(temp_state[3][j][i], 13)^temp_state[4][j][i]^gmul(temp_state[5][j][i], 9)^ \
-				temp_state[6][j][i]^gmul(temp_state[7][j][i], 14);
-		}
-	}
-}
-
 //add the round key to the state
 void AddRoundKey(unsigned char round_key[8][8][8]){
 	int i;
@@ -675,7 +570,6 @@ void GetRoundKey(unsigned int r){
 //galois field multiplication
 unsigned char gmul(unsigned char x, unsigned char y){
 	unsigned char z;
-	unsigned char hi_bit_set;
 
 	if(y==2){
 		z=x<<1;

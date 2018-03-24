@@ -4,4 +4,4 @@ Section: libs
 Architecture: amd64
 Maintainer: Gabe Maiberger <gabrielmaiberger@gmail.com>
 Description: Post Quantum Cryptographic Library
-Depends: libc6 (>= 2.26)
+Depends: libc6 (>= 2.24)

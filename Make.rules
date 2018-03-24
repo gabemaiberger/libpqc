@@ -1,5 +1,5 @@
 #libpqc Make.rules
-#Copyright (C) 2017 Gabriel Nathan Maiberger
+#Copyright (C) 2017-2018 Gabriel Nathan Maiberger
 
 #This program is free software: you can redistribute it and/or modify
 #it under the terms of the GNU Lesser General Public License as published by
@@ -20,15 +20,15 @@ LL=ld
 else ifeq ($(ARCH),arm)
 CC=/usr/bin/arm-linux-gnueabihf-gcc-6
 LL=/usr/bin/arm-linux-gnueabihf-ld
+else ifeq ($(ARCH),armeabi-v7a)
+CC=toolchain/bin/arm-linux-androideabi-gcc
+LL=toolchain/bin/arm-linux-androideabi-ld
 else
 CC=gcc
 LL=ld
 endif
 
-INCDIR=include/
-
-%.o: %.c
-	$(CC) -c -g -I$(INCDIR) -o $@ $^
+INCDIRS=-Iinclude/ -I/usr/lib/jvm/java-8-openjdk-amd64/include/ -I/usr/lib/jvm/java-8-openjdk-amd64/include/linux
 
 %-shared.o: %.c
-	$(CC) -c -g -fPIC -I$(INCDIR) -o $@ $^
+	$(CC) -c -fPIC -Wall $(INCDIRS) -o $@ $^
