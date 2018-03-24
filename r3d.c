@@ -27,8 +27,6 @@ void ShiftSlices();
 void InvShiftSlices();
 void MixColumns();
 void InvMixColumns();
-void MixSlices();
-void InvMixSlices();
 void AddRoundKey(unsigned char key[8][8][8]);
 void ExpandKey();
 void GetRoundKey(unsigned int r);
