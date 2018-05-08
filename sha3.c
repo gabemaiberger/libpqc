@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <string.h>
+#include <strings.h>
 #include <malloc.h>
 #include <math.h>
 
@@ -50,41 +51,50 @@ unsigned char *sha3_512(unsigned char *data, int size){
 		size+=(72-size%72);
 	}
 
-	for(i=0; i<size; i++){
-		printf("%x ", P[i]);
-	}
-	printf("\n\n");
-
 	int n=(size/72);
+
+	//printf("%i\n\n", n);
 
 	unsigned char *p[n];
 
 	for(i=0; i<n; i++){
 		p[i]=malloc(72);
-		bzero(p[i], 72);
-		strncpy(p[i], &P[i+(72*n)], 72);
+		memcpy(p[i], P+(i*72), 72);
 	}
 
-	/*for(i=0; i<72; i++){
-		printf("%x ", p[0][i]);
-	}
-	printf("\n\n");*/
+	/*for(i=0; i<n; i++){
+		for(j=0; j<72; j++){
+			printf("%x ", p[i][j]);
+		}
+		printf("\n\n");
+	}*/
 
-	unsigned char *S=malloc(72);
-	bzero(S, 72);
+	unsigned char *S=malloc(200);
+	bzero(S, 200);
 
 	int c=128;
 	for(i=0; i<n; i++){
 		strncat(p[i], "\0", c);
-		for(j=0; j<72; j++){
+		for(j=0; j<200; j++){
 			S[j]^=p[i][j];
 		}
 		sha3_permute_block(S);
+		/*for(j=0; j<200; j++){
+			printf("%x ", S[j]);
+		}
+		printf("\n\n");*/
 	}
 
-	unsigned char *Z=malloc(72);
+	unsigned char *Z=malloc(64);
 
-	strncpy(Z, S, 64);
+	memcpy(Z, S, 64);
+
+	free(S);
+
+	for(i=0; i<64; i++){
+		printf("%x ", Z[i]);
+	}
+	printf("\n\n");
 
 	return Z;
 }
@@ -131,32 +141,22 @@ unsigned char *sha3_permute_block(unsigned char *data){
 			}
 		}
 
-		int t=0;
+		int t=-1;
 		int t_inc=1;
-		for(k=0; k<8; k++){
-			if(i==0){
-				for(j=1; j<5; j++){
-					for(k=0; k<8; k++){
-						state[i][j][k]=state[i][j][k-((t+1)*(t+2)/2)];
-					}
-					t_inc++;
-					t+=t_inc;
+		for(i=0; i<5; i++){
+			for(j=0; j<5; j++){
+				for(k=0; k<8; k++){
+					state[i][j][k]=state[i][j][k-((t+1)*(t+2)/2)];
 				}
-			} else {
-				for(j=0; j<5; j++){
-					for(k=0; k<8; k++){
-						state[i][j][k]=state[i][j][k-((t+1)*(t+2)/2)];
-					}
-					t_inc++;
-					t+=t_inc;
-				}
+				t+=t_inc;
+				t_inc++;
 			}
 		}
 
 		for(i=0; i<5; i++){
 			for(j=0; j<5; j++){
 				for(k=0; k<8; k++){
-					state[i][j][k]=state[j][2*i+3*j][k];
+					state[j][(2*i+3*j)%5][k]=state[i][j][k];
 				}
 			}
 		}
@@ -169,8 +169,11 @@ unsigned char *sha3_permute_block(unsigned char *data){
 			}
 		}
 
+		unsigned char temp[8];
+		strncpy(temp, &RC[r], 8);
+
 		for(k=0; k<8; k++){
-			state[0][0][k]^=RC[r];
+			state[0][0][k]^=temp[k];
 		}
 	}
 

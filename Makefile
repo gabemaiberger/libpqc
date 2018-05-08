@@ -25,7 +25,11 @@ libpqc-java.so: r3d-shared.o r3d_modes-shared.o java-shared.o
 	$(LL) -shared -fPIC -o $@ $^
 
 LibPQC.jar: LibPQC.class
-	jar cvfe $@ LibPQC $^
+	mkdir -p LibPQC
+	cp $^ LibPQC
+	cp *.java LibPQC
+	jar cvfe $@ LibPQC LibPQC/$^
+	#jar uvf $@ LibPQC/*.java
 
 LibPQC.class: LibPQC.java
 	javac $^
@@ -48,10 +52,13 @@ deb:
 	chmod -R 755 package
 	dpkg-deb -b package libpqc.deb
 
-clean: clean-build clean-deb
+clean: clean-build clean-deb clean-jar
 
 clean-build:
-	rm -r *.o *.so *.class *.jar
+	rm -r *.o *.so *.class
 
 clean-deb:
 	rm -r *.deb package/usr/
+
+clean-jar:
+	rm -r *.jar LibPQC

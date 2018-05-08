@@ -22,13 +22,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sha3.h>
 
 unsigned char *pbkdf2_derive_key(unsigned char *password, unsigned char *salt, int c, int len);
-unsigned char *pbkdf2_function(unsigned char *password, unsigned char *salt, int c, int i);
+unsigned char *pbkdf2_function(unsigned char *password, unsigned char *salt, int c, long int i);
 unsigned char *hmac_sha3(unsigned char *key, unsigned char *message);
 
 unsigned char *pbkdf2_derive_key(unsigned char *password, unsigned char *salt, int c, int len){
 	int n=len/64;
-
-	printf("%i\n", n);
 
 	unsigned char *t[n];
 	unsigned char *key=malloc(len);
@@ -42,28 +40,35 @@ unsigned char *pbkdf2_derive_key(unsigned char *password, unsigned char *salt, i
 	return key;
 }
 
-unsigned char *pbkdf2_function(unsigned char *password, unsigned char *salt, int c, int i){
+unsigned char *pbkdf2_function(unsigned char *password, unsigned char *salt, int c, long int i){
 	unsigned char *u[c];
-	long int u_final;
+	unsigned char u_final[64];
+	unsigned char *f=malloc(64);
 
 	int j;
+	int k;
 	for(j=0; j<c; j++){
 		if(j==0){
 			strcat(salt, (unsigned char *)&i);
 			u[j]=hmac_sha3(password, salt);
-			u_final=(long int)u[j];
+			for(k=0; k<64; k++){
+				u_final[k]=u[j][k];
+			}
 		} else {
 			u[j]=hmac_sha3(password, u[j-1]);
-			u_final^=(long int)u[j];
+			for(k=0; k<64; k++){
+				u_final[k]^=u[j][k];
+			}
 		}
 	}
 
-	return (unsigned char *)u_final;
+	memcpy(f, u_final, 64);
+
+	return f;
 }
 
 unsigned char *hmac_sha3(unsigned char *key, unsigned char *message){
 	int size=sizeof(key)/sizeof(key[0]);
-	printf("%i\n", size);
 
 	if(size>64){
 		key=sha3_512(key,64);
@@ -73,13 +78,13 @@ unsigned char *hmac_sha3(unsigned char *key, unsigned char *message){
 		size=64;
 	}
 
-	unsigned char *o_key_pad=malloc(128);
 	unsigned char *i_key_pad=malloc(128);
+	unsigned char *o_key_pad=malloc(128);
 
 	int i;
 	for(i=0; i<64; i++){
-		memset((o_key_pad+i), (long int)(0x5c*64)^(long int)key[i], 1);
 		memset((i_key_pad+i), (long int)(0x36*64)^(long int)key[i], 1);
+		memset((o_key_pad+i), (long int)(0x5c*64)^(long int)key[i], 1);
 	}
 
 	strcat(i_key_pad, message);
