@@ -17,15 +17,19 @@
 ifeq ($(ARCH),x86)
 CC=gcc
 LL=ld
+LDFLAGS=-shared -fPIC
 else ifeq ($(ARCH),arm)
 CC=/usr/bin/arm-linux-gnueabihf-gcc-6
 LL=/usr/bin/arm-linux-gnueabihf-ld
+LDFLAGS=-shared -fPIC
 else ifeq ($(ARCH),armeabi-v7a)
 CC=toolchain/bin/arm-linux-androideabi-gcc
 LL=toolchain/bin/arm-linux-androideabi-ld
+LDFLAGS=-shared -fPIC -Llib/ -lc
 else
 CC=gcc
 LL=ld
+LDFLAGS=-shared -fPIC
 endif
 
 INCDIRS=-Iinclude/ -I/usr/lib/jvm/java-8-openjdk-amd64/include/ -I/usr/lib/jvm/java-8-openjdk-amd64/include/linux
