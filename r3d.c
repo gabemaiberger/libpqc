@@ -487,13 +487,13 @@ void ExpandKey(){
 	for(r_i=1; r_i<=15; r_i++){
 		for(k=0; k<8; k++){
 			if(k==0){
-				//copy the first column from the final slice of the
+				//copy the final column from the final slice of the
 				//previous round to the first column of the current slice
 				for(j=0; j<8; j++){
 					key_schedule[r_i][0][j][0]=key_schedule[r_i-1][7][j][7];
 				}
 			} else if(k>0){
-				//copy the first column of the previous slice
+				//copy the final column of the previous slice
 				//to the first column of the current slice
 				for(j=0; j<8; j++){
 					key_schedule[r_i][k][j][0]=key_schedule[r_i][k-1][j][7];
@@ -523,27 +523,35 @@ void ExpandKey(){
 
 			if(k==0){
 				//XOR with final slice of previous round
+				for(j=0; j<8; j++){
+					key_schedule[r_i][0][j][0]=key_schedule[r_i][0][j][0]^key_schedule[r_i-1][7][j][0];
+				}
+
 				for(i=1; i<8; i++){
 					for(j=0; j<8; j++){
-						key_schedule[r_i][0][j][i]=key_schedule[r_i][0][j][i-1]^key_schedule[r_i-1][7][j][i-1];
+						key_schedule[r_i][0][j][i]=key_schedule[r_i][0][j][i-1]^key_schedule[r_i-1][7][j][i];
 					}
 				}
 			} else if(k>0){
 				//XOR with previous slice
+				for(j=0; j<8; j++){
+					key_schedule[r_i][k][j][0]=key_schedule[r_i][k][j][0]^key_schedule[r_i][k-1][j][0];
+				}
+
 				for(i=1; i<8; i++){
 					for(j=0; j<8; j++){
-						key_schedule[r_i][k][j][i]=key_schedule[r_i][k][j][i-1]^key_schedule[r_i][k-1][j][i-1];
+						key_schedule[r_i][k][j][i]=key_schedule[r_i][k][j][i-1]^key_schedule[r_i][k-1][j][i];
 					}
 				}
 			}
 
-			//copy the key into the appropriate schedule round
+			//shift columns of current slice
 			for(j=1; j<8; j++){
 				for(i=0; i<8; i++){
-					temp[i]=key_schedule[r_i][k][j][(i+j)%8];
+					temp[i]=key_schedule[r_i][k][j][(i+j)%8]; //shift to the left j times 
 				}
 				for(i=0; i<8; i++){
-					key_schedule[r_i][k][j][i]=temp[i];
+					key_schedule[r_i][k][j][i]=temp[i]; //store the result
 				}
 			}
 		}
