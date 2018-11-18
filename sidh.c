@@ -118,34 +118,61 @@ unsigned char sidh_generate_isogeny(){
 
 	int i;
 	for(i=0; i<w_a; i++){
-		v+=v_p;
+		v=v_p*w_a;
 		w+=u_p+r_a.x*v_p;
 	}
 
-	long double sum_x;
-	long double sum_y;
+	long double sum_xp;
+	long double sum_yp;
+
+	long double sum_xq;
+	long double sum_yq;
 
 	for(i=0; i<e_a; i++){
-		sum_x+=(v_p/(E_0.h-r_a.x))-(u_p/powl(E_0.h-r_a.x, 2));
-		sum_y+=(2*u_p*E_0.k/powl(E_0.h-r_a.x, 3))+v_p*((E_0.k-r_a.y-g_px*g_py)/powl(E_0.h-r_a.x, 2));
+		sum_xp+=(v_p/(p_b.x-r_a.x))-(u_p/powl(p_b.x-r_a.x, 2));
+		sum_yp+=(2*u_p*p_b.y/powl(E_0.h-r_a.x, 3))+v_p*((p_b.y-r_a.y-g_px*g_py)/powl(p_b.x-r_a.x, 2));
+		sum_xq+=(v_p/(q_b.x-r_a.x))-(u_p/powl(q_b.x-r_a.x, 2));
+		sum_yq+=(2*u_p*q_b.y/powl(E_0.h-r_a.x, 3))+v_p*((q_b.y-r_a.y-g_px*g_py)/powl(q_b.x-r_a.x, 2));
 	}
 
-	phi=(isogeny){r_a.x+sum_x, r_a.y-sum_y};
+	//phi=(isogeny){r_a.x+sum_x, r_a.y-sum_y};
+
+	p_aphi=(point){p_b.x+sum_xp, p_b.y-sum_yp};
+	q_aphi=(point){q_b.x+sum_xq, q_b.y-sum_yq};
+
+	//p_aphi=(point){p_b.x+E_A.h, sqrt(powl(p_b.x, 3)+(E_A.a*p_b.x)+E_A.b)+E_A.k};
+	//q_aphi=(point){q_b.x+E_A.h, sqrt(powl(q_b.x, 3)+(E_A.a*q_b.x)+E_A.b)+E_A.k};
 
 	E_A=(curve){(E_0.a-5*v), (E_0.b-7*w), r_a.x, r_a.y};
 
-	p_aphi=(point){p_b.x+phi.x, p_b.y+phi.y};
-	q_aphi=(point){q_b.x+phi.x, q_b.y+phi.y};
+	printf("r_a: %Lf, ", r_a.x);
+	printf("%Lf\n", r_a.y);
+
+	printf("g_px: %Lf\n", g_px);
+	printf("g_py: %Lf\n", g_py);
+
+	printf("v_p: %Lf\n", v_p);
+	printf("u_p: %Lf\n", u_p);
+
+	printf("v: %Lf\n", v);
+	printf("w: %Lf\n", w);
+
+	printf("p_aphi: %Lf, ", p_aphi.x);
+	printf("%Lf\n", p_aphi.y);
+	printf("q_aphi: %Lf, ", q_aphi.x);
+	printf("%Lf\n", q_aphi.y);
 }
 
 long double sidh_compute_key(){
 	s_ba=(point){m_a*p_bphi.x+n_a*q_bphi.x, m_a*p_bphi.y+n_a*q_bphi.y};
 
-	/*printf("r_a: %Lf, ", r_a.x);
-	printf("%Lf\n", r_a.y);
+	printf("p_bphi: %Lf, ", p_bphi.x);
+	printf("%Lf\n", p_bphi.y);
+	printf("q_bphi: %Lf, ", q_bphi.x);
+	printf("%Lf\n", q_bphi.y);
 
 	printf("s_ba: %Lf, ", s_ba.x);
-	printf("%Lf\n", s_ba.y);*/
+	printf("%Lf\n", s_ba.y);
 
 	long double g_px=3*powl(s_ba.x, 2)+E_B.a;
 	long double g_py=(-2*s_ba.y);
@@ -157,7 +184,7 @@ long double sidh_compute_key(){
 
 	int i;
 	for(i=0; i<w_a; i++){
-		v+=v_p;
+		v=v_p*w_a;
 		w+=(u_p+s_ba.x*v_p);
 	}
 
@@ -171,9 +198,9 @@ long double sidh_compute_key(){
 
 	psi=(isogeny){s_ba.x+sum_x, s_ba.y-sum_y};
 
-	curve E_BA=(curve){(E_B.a-5*v), (E_B.b-7*w), s_ba.x, s_ba.y};
+	curve E_BA=(curve){(E_B.a-5*v), (E_B.b-7*w), psi.x, psi.y};
 
-	/*printf("g_px: %Lf\n", g_px);
+	printf("g_px: %Lf\n", g_px);
 	printf("g_py: %Lf\n", g_py);
 
 	printf("v_p: %Lf\n", v_p);
@@ -198,7 +225,7 @@ long double sidh_compute_key(){
 	printf("E_BA: %Lf, ", E_BA.a);
 	printf("%Lf\n", E_BA.b);
 	printf("%Lf, ", E_BA.h);
-	printf("%Lf\n", E_BA.k);*/
+	printf("%Lf\n", E_BA.k);
 
 	long double key=j_invariant(E_BA.a, E_BA.b);
 
