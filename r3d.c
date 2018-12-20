@@ -27,9 +27,8 @@ void ShiftSlices();
 void InvShiftSlices();
 void MixColumns();
 void InvMixColumns();
-void AddRoundKey(unsigned char key[8][8][8]);
+void AddRoundKey(unsigned int r);
 void ExpandKey();
-void GetRoundKey(unsigned int r);
 
 unsigned char gmul(unsigned char x, unsigned char y);
 
@@ -139,7 +138,6 @@ const unsigned char kcon[8][8] = { //slice constants
 unsigned char state[8][8][8]; //temporary state for algorithm
 
 unsigned char master_key[8][8][8]; //master key
-unsigned char round_key[8][8][8]; //round key
 unsigned char key_schedule[51][8][8][8]; //key schedule
 
 //encrypt one block (512 bytes) of data
@@ -160,7 +158,7 @@ void r3d_encrypt_block(unsigned char plaintext_block[512], unsigned char key[512
 
 	//initial round
 	ExpandKey();
-	AddRoundKey(master_key);
+	AddRoundKey(0);
 
 	//one round of encryption
 	for(i=1; i<=14; i++){
@@ -171,15 +169,13 @@ void r3d_encrypt_block(unsigned char plaintext_block[512], unsigned char key[512
 			ShiftRows();
 		}
 		MixColumns();
-		GetRoundKey(i);
-		AddRoundKey(round_key);
+		AddRoundKey(i);
 	}
 
 	//final round
 	SubBytes();
 	ShiftRows();
-	GetRoundKey(15);
-	AddRoundKey(round_key);
+	AddRoundKey(15);
 
 	//copy the state into the ciphertext block
 	for(k=0; k<8; k++){
@@ -209,8 +205,7 @@ void r3d_decrypt_block(unsigned char ciphertext_block[512], unsigned char key[51
 
 	//initial round
 	ExpandKey();
-	GetRoundKey(15);
-	AddRoundKey(round_key);
+	AddRoundKey(15);
 
 	//one round of decryption
 	for(i=14; i>=1; i--){
@@ -220,15 +215,14 @@ void r3d_decrypt_block(unsigned char ciphertext_block[512], unsigned char key[51
 			InvShiftSlices();
 		}
 		InvSubBytes();
-		GetRoundKey(i);
-		AddRoundKey(round_key);
+		AddRoundKey(i);
 		InvMixColumns();
 	}
 
 	//final round
 	InvShiftRows();
 	InvSubBytes();
-	AddRoundKey(master_key);
+	AddRoundKey(0);
 
 	//copy the state into the plaintext block
 	for(k=0; k<8; k++){
@@ -453,7 +447,7 @@ void InvMixColumns(){
 }
 
 //add the round key to the state
-void AddRoundKey(unsigned char round_key[8][8][8]){
+void AddRoundKey(unsigned int r){
 	int i;
 	int j;
 	int k;
@@ -461,7 +455,7 @@ void AddRoundKey(unsigned char round_key[8][8][8]){
 	for(k=0; k<8; k++){
 		for(j=0; j<8; j++){
 			for(i=0; i<8; i++){
-				state[k][j][i]=state[k][j][i]^round_key[k][j][i]; //XOR the round key with the state
+				state[k][j][i]=state[k][j][i]^key_schedule[r][k][j][i]; //XOR the round key with the state
 			}
 		}
 	}
@@ -553,21 +547,6 @@ void ExpandKey(){
 				for(i=0; i<8; i++){
 					key_schedule[r_i][k][j][i]=temp[i]; //store the result
 				}
-			}
-		}
-	}
-}
-
-//get a round key from the key schedule
-void GetRoundKey(unsigned int r){
-	int i;
-	int j;
-	int k;
-
-	for(k=0; k<8; k++){
-		for(j=0; j<8; j++){
-			for(i=0; i<8; i++){
-				round_key[k][j][i]=key_schedule[r][k][j][i];
 			}
 		}
 	}
