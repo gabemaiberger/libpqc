@@ -28,8 +28,7 @@ LibPQC.jar: LibPQC.class
 	mkdir -p LibPQC
 	cp $^ LibPQC
 	cp *.java LibPQC
-	jar cvfe $@ LibPQC LibPQC/$^
-	#jar uvf $@ LibPQC/*.java
+	jar cvfe $@ LibPQC LibPQC/*
 
 LibPQC.class: LibPQC.java
 	javac $^
