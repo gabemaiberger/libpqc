@@ -1,6 +1,6 @@
 /*
 R3D Cipher
-Copyright (C) 2017-2019 Gabriel Nathan Maiberger
+Copyright (C) 2017-2018 Gabriel Nathan Maiberger
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -122,17 +122,6 @@ const unsigned char rcon[51][8] = { //round constants
 0xE8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 0xCB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 0x8D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-};
-
-const unsigned char kcon[8][8] = { //slice constants
-0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
 unsigned char state[8][8][8]; //temporary state for algorithm
@@ -486,68 +475,53 @@ void ExpandKey(){
 				for(j=0; j<8; j++){
 					key_schedule[r_i][0][j][0]=key_schedule[r_i-1][7][j][7];
 				}
-			} else if(k>0){
-				//copy the final column of the previous slice
-				//to the first column of the current slice
+
+				//rotate column by one
 				for(j=0; j<8; j++){
-					key_schedule[r_i][k][j][0]=key_schedule[r_i][k-1][j][7];
+					temp[(j+1)%8]=key_schedule[r_i][0][j][0];
 				}
-			}
+				for(j=0; j<8; j++){
+					key_schedule[r_i][0][j][0]=temp[j];
+				}
 
-			//rotate column by one
-			for(j=0; j<8; j++){
-				temp[(j+1)%8]=key_schedule[r_i][k][j][0];
-			}
-			for(j=0; j<8; j++){
-				key_schedule[r_i][k][j][0]=temp[j];
-			}
+				//SubBytes
+				for(j=0; j<8; j++){
+					key_schedule[r_i][0][j][0]=s[key_schedule[r_i][0][j][0]];
+				}
 
-			//SubBytes
-			for(j=0; j<8; j++){
-				key_schedule[r_i][k][j][0]=s[key_schedule[r_i][k][j][0]];
-			}
-
-			if(k==0){
 				//XOR with round constant (Rcon)
-				key_schedule[r_i][0][0][0]=key_schedule[r_i][0][0][0]^rcon[r_i-1][j];
-			} else if(k>0){
-				//XOR with slice constant (Kcon)
-				key_schedule[r_i][k][0][0]=key_schedule[r_i][k][0][0]^kcon[k-1][j];
-			}
+				key_schedule[r_i][0][0][0]=key_schedule[r_i][0][0][0]^rcon[r_i-1][0];
 
-			if(k==0){
-				//XOR with final slice of previous round
+				//XOR with first column of previous round
 				for(j=0; j<8; j++){
-					key_schedule[r_i][0][j][0]=key_schedule[r_i][0][j][0]^key_schedule[r_i-1][7][j][0];
+					key_schedule[r_i][0][j][0]=key_schedule[r_i][0][j][0]^key_schedule[r_i-1][0][j][0];
 				}
-
 				for(i=1; i<8; i++){
 					for(j=0; j<8; j++){
-						key_schedule[r_i][0][j][i]=key_schedule[r_i][0][j][i-1]^key_schedule[r_i-1][7][j][i];
+						key_schedule[r_i][0][j][i]=key_schedule[r_i][0][j][i-1]^key_schedule[r_i-1][0][j][i];
 					}
 				}
 			} else if(k>0){
-				//XOR with previous slice
+				//XOR with first column of previous slice
 				for(j=0; j<8; j++){
-					key_schedule[r_i][k][j][0]=key_schedule[r_i][k][j][0]^key_schedule[r_i][k-1][j][0];
+					key_schedule[r_i][k][j][0]=key_schedule[r_i][k-1][j][7]^key_schedule[r_i-1][k][j][0];
 				}
-
 				for(i=1; i<8; i++){
 					for(j=0; j<8; j++){
-						key_schedule[r_i][k][j][i]=key_schedule[r_i][k][j][i-1]^key_schedule[r_i][k-1][j][i];
+						key_schedule[r_i][k][j][i]=key_schedule[r_i][k][j][i-1]^key_schedule[r_i-1][k][j][i];
 					}
 				}
 			}
 
-			//shift columns of current slice
-			for(j=1; j<8; j++){
+			//shift rows of current slice
+			/*for(j=1; j<8; j++){
 				for(i=0; i<8; i++){
 					temp[i]=key_schedule[r_i][k][j][(i+j)%8]; //shift to the left j times 
 				}
 				for(i=0; i<8; i++){
 					key_schedule[r_i][k][j][i]=temp[i]; //store the result
 				}
-			}
+			}*/
 		}
 	}
 }
