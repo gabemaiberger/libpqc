@@ -110,11 +110,7 @@ KeyScheduler Round
 	1. W(i)=RotQuadWord W(i-1)
 	2. W(i)=SubBytes W(i-1)
 	3. W(i)=W(i-1) XOR W(i-64) XOR Rcon(i)
-2. Multiple of 64
-	1. W(i)=RotQuadWord W(i-1)
-	2. W(i)=SubBytes W(i-1)
-	3. W(i)=W(i-1) XOR W(i-8) XOR Kcon(i)
-	4. ShiftRows
-3. Not a multiple
-	1. W(i)=W(i-1) XOR W(i-8)
+2. Not a multiple
+	1. W(i)=W(i-1) XOR W(i-64)
+	2. ShiftRows
 
