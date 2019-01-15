@@ -107,9 +107,7 @@ InvMixColumns
 KeyScheduler Round
 ------------------
 1. Multiple of 512
-	1. W(i)=RotQuadWord W(i-1)
-	2. W(i)=SubBytes W(i-1)
-	3. W(i)=W(i-1) XOR W(i-64) XOR Rcon(i)
+	1. W(i)=RotQuadWord(SubBytes(W(i-1)) XOR W(i-64) XOR Rcon(i)
 2. Not a multiple
 	1. W(i)=W(i-1) XOR W(i-64)
 	2. ShiftRows

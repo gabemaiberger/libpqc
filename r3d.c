@@ -448,14 +448,14 @@ void ExpandKey(){
 				//XOR with round constant (Rcon)
 				key_schedule[r_i][0][0][0]=key_schedule[r_i][0][0][0]^rcon[r_i-1];
 
-				//XOR with final slice of previous round
+				//XOR with first column of previous round
 				for(j=0; j<8; j++){
-					key_schedule[r_i][0][j][0]=key_schedule[r_i][0][j][0]^key_schedule[r_i-1][7][j][0];
+					key_schedule[r_i][0][j][0]=key_schedule[r_i][0][j][0]^key_schedule[r_i-1][0][j][0];
 				}
 
 				for(i=1; i<8; i++){
 					for(j=0; j<8; j++){
-						key_schedule[r_i][0][j][i]=key_schedule[r_i][0][j][i-1]^key_schedule[r_i-1][7][j][i];
+						key_schedule[r_i][0][j][i]=key_schedule[r_i][0][j][i-1]^key_schedule[r_i-1][0][j][i];
 					}
 				}
 			} else if(k>0){
