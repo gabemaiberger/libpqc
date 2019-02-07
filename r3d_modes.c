@@ -76,6 +76,8 @@ typedef struct {
 	int i;
 } xex_args;
 
+pthread_mutex_t mutex;
+
 //Electronic CodeBlock (ECB) Mode Encryption
 void r3d_encrypt_ecb(unsigned char *plaintext, unsigned char *key, unsigned char *ciphertext, int size){
 	int block_num=(size/512); //calculate the number of blocks in the plaintext
@@ -228,7 +230,7 @@ void r3d_encrypt_xex(unsigned char *plaintext, unsigned char *key, unsigned char
 	int i;
 	int j;
 	for(i=0; i<block_num; i++){
-		memset(i_block, i, 512); //set the counter block to the value of integer i
+		memcpy(i_block, &i, sizeof(i)); //copy the integer i to the counter block
 
 		//encrypt the counter block to produce the x block
 		r3d_encrypt_block((unsigned char *)i_block, key_block, x_block);
@@ -277,7 +279,7 @@ void r3d_decrypt_xex(unsigned char *ciphertext, unsigned char *key, unsigned cha
 	int i;
 	int j;
 	for(i=0; i<block_num; i++){
-		memset(i_block, i, 512); //set the counter block to the value of integer i
+		memcpy(i_block, &i, sizeof(i)); ///copy the integer i to the counter block
 
 		//encrypt the counter block to produce the x block
 		r3d_encrypt_block((unsigned char *)i_block, key_block, x_block);
@@ -430,6 +432,7 @@ void r3d_encrypt_xex_mt(unsigned char *plaintext, unsigned char *key, unsigned c
 		args[i]=(xex_args){plaintext, ciphertext, key, i};
 	}
 
+	pthread_mutex_init(&mutex, NULL);
 	for(i=0; i<=block_num; i+=num_threads){
 		for(j=0; j<num_threads; j++){
 			args[j].i=i+j;
@@ -440,6 +443,7 @@ void r3d_encrypt_xex_mt(unsigned char *plaintext, unsigned char *key, unsigned c
 		}
 		printf("%d\n", i);
 	}
+	pthread_mutex_destroy(&mutex);
 }
 
 void r3d_decrypt_xex_mt(unsigned char *ciphertext, unsigned char *key, unsigned char *plaintext, int size, int num_threads){
@@ -453,6 +457,7 @@ void r3d_decrypt_xex_mt(unsigned char *ciphertext, unsigned char *key, unsigned 
 		args[i]=(xex_args){plaintext, ciphertext, key, i};
 	}
 
+	pthread_mutex_init(&mutex, NULL);
 	for(i=0; i<=block_num; i+=num_threads){
 		for(j=0; j<num_threads; j++){
 			args[j].i=i+j;
@@ -463,13 +468,14 @@ void r3d_decrypt_xex_mt(unsigned char *ciphertext, unsigned char *key, unsigned 
 		}
 		printf("%d\n", i);
 	}
+	pthread_mutex_destroy(&mutex);
 }
 
 void *xex_encrypt_thread(void *vargp){
 	unsigned char plaintext_block[512]; //plaintext block
 	unsigned char ciphertext_block[512]; //ciphertext block
 	unsigned char key_block[512]; //key block
-	unsigned int i_block[512]; //counter block
+	unsigned char i_block[512]; //counter block
 	unsigned char x_block[512]; //x block
 
 	xex_args *args=vargp;
@@ -477,26 +483,26 @@ void *xex_encrypt_thread(void *vargp){
 	int j;
 
 	memcpy(key_block, args->key, 512); //copy the cryptographic key to the key block
-	memset(i_block, args->i, 512); //set the counter block to the value of integer i
+	memcpy(i_block, &args->i, sizeof(args->i)); //copy the integer i to the counter block
+	memcpy(plaintext_block, args->plaintext+(args->i*512), 512); //copy a block from the plaintext buffer to the plaintext block
 
-	//encrypt the counter block to produce the x block
-	r3d_encrypt_block((unsigned char *)i_block, key_block, x_block);
+	pthread_mutex_lock(&mutex);
+	r3d_encrypt_block(i_block, key_block, x_block); //encrypt the counter block to produce the x block
+	pthread_mutex_unlock(&mutex);
 
 	//multiply the x block by 2 over GF(2^8)
 	for(j=0; j<512; j++){
 		x_block[j]=gf256[x_block[j]];
 	}
 
-	//copy a block from the plaintext buffer to the plaintext block
-	memcpy(plaintext_block, args->plaintext+(args->i*512), 512);
-
 	//XOR the plaintext block with the x block
 	for(j=0; j<512; j++){
 		plaintext_block[j]^=x_block[j];
 	}
 
-	//encrypt the plaintext block
-	r3d_encrypt_block(plaintext_block, key_block, ciphertext_block);
+	pthread_mutex_lock(&mutex);
+	r3d_encrypt_block(plaintext_block, key_block, ciphertext_block); //encrypt the plaintext block
+	pthread_mutex_unlock(&mutex);
 
 	//XOR the ciphertext block with the x block
 	for(j=0; j<512; j++){
@@ -505,6 +511,7 @@ void *xex_encrypt_thread(void *vargp){
 
 	//copy the ciphertext block to the ciphertext buffer
 	memcpy(args->ciphertext+(args->i*512), ciphertext_block, 512);
+
 	pthread_exit(0);
 }
 
@@ -512,7 +519,7 @@ void *xex_decrypt_thread(void *vargp){
 	unsigned char plaintext_block[512]; //plaintext block
 	unsigned char ciphertext_block[512]; //ciphertext block
 	unsigned char key_block[512]; //key block
-	unsigned int i_block[512]; //counter block
+	unsigned char i_block[512]; //counter block
 	unsigned char x_block[512]; //x block
 
 	xex_args *args=vargp;
@@ -520,26 +527,26 @@ void *xex_decrypt_thread(void *vargp){
 	int j;
 
 	memcpy(key_block, args->key, 512); //copy the cryptographic key to the key block
-	memset(i_block, args->i, 512); //set the counter block to the value of integer i
+	memcpy(i_block, &args->i, sizeof(args->i)); //copy the integer i to the counter block
+	memcpy(ciphertext_block, args->ciphertext+(args->i*512), 512); //copy a block from the ciphertext buffer to the ciphertext block
 
-	//encrypt the counter block to produce the x block
-	r3d_encrypt_block((unsigned char *)i_block, key_block, x_block);
+	pthread_mutex_lock(&mutex);
+	r3d_encrypt_block(i_block, key_block, x_block); //encrypt the counter block to produce the x block
+	pthread_mutex_unlock(&mutex);
 
 	//multiply the x block by 2 over GF(2^8)
 	for(j=0; j<512; j++){
 		x_block[j]=gf256[x_block[j]];
 	}
 
-	//copy a block from the ciphertext buffer to the ciphertext block
-	memcpy(ciphertext_block, args->ciphertext+(args->i*512), 512);
-
 	//XOR the ciphertext block with the x block
 	for(j=0; j<512; j++){
 		ciphertext_block[j]^=x_block[j];
 	}
 
-	//decrypt the ciphertext block
-	r3d_decrypt_block(ciphertext_block, key_block, plaintext_block);
+	pthread_mutex_lock(&mutex);
+	r3d_decrypt_block(ciphertext_block, key_block, plaintext_block); //decrypt the ciphertext block
+	pthread_mutex_unlock(&mutex);
 
 	//XOR the plaintext block with the x block
 	for(j=0; j<512; j++){
@@ -548,5 +555,6 @@ void *xex_decrypt_thread(void *vargp){
 
 	//copy the plaintext block to the plaintext buffer
 	memcpy(args->plaintext+(args->i*512), plaintext_block, 512);
+	
 	pthread_exit(0);
 }
