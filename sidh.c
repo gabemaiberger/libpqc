@@ -1,6 +1,6 @@
 /*
 Supersingular Isogeny Diffie Hellman (SIDH) Key Exchange
-Copyright (C) 2017-2019 Gabriel Nathan Maiberger
+Copyright (C) 2017-2020 Gabriel Nathan Maiberger
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -130,8 +130,12 @@ unsigned char sidh_generate_isogeny(){
 
 	for(i=0; i<e_a; i++){
 		sum_xp+=(v_p/(p_b.x-r_a.x))-(u_p/powl(p_b.x-r_a.x, 2));
-		sum_yp+=(2*u_p*p_b.y/powl(E_0.h-r_a.x, 3))+v_p*((p_b.y-r_a.y-g_px*g_py)/powl(p_b.x-r_a.x, 2));
 		sum_xq+=(v_p/(q_b.x-r_a.x))-(u_p/powl(q_b.x-r_a.x, 2));
+
+	}
+
+	for(i=0; i<e_a; i++){
+		sum_yp+=(2*u_p*p_b.y/powl(E_0.h-r_a.x, 3))+v_p*((p_b.y-r_a.y-g_px*g_py)/powl(p_b.x-r_a.x, 2));
 		sum_yq+=(2*u_p*q_b.y/powl(E_0.h-r_a.x, 3))+v_p*((q_b.y-r_a.y-g_px*g_py)/powl(q_b.x-r_a.x, 2));
 	}
 
@@ -193,6 +197,9 @@ long double sidh_compute_key(){
 
 	for(i=0; i<e_a; i++){
 		sum_x+=(v_p/(E_B.h-s_ba.x))-(u_p/powl(E_B.h-s_ba.x, 2));
+	}
+
+	for(i=0; i<e_a; i++){
 		sum_y+=(2*u_p*E_B.k/powl(E_B.h-s_ba.x, 3))+v_p*((E_B.k-s_ba.y-g_px*g_py)/powl(E_B.h-s_ba.x, 2));
 	}
 
