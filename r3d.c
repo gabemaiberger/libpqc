@@ -432,17 +432,17 @@ void ExpandKey(){
 					key_schedule[r_i][0][j][0]=key_schedule[r_i-1][7][j][7];
 				}
 
+				//SubBytes
+				for(j=0; j<8; j++){
+					key_schedule[r_i][k][j][0]=s[key_schedule[r_i][k][j][0]];
+				}
+
 				//rotate column by one
 				for(j=0; j<8; j++){
 					temp[(j+1)%8]=key_schedule[r_i][k][j][0];
 				}
 				for(j=0; j<8; j++){
 					key_schedule[r_i][k][j][0]=temp[j];
-				}
-
-				//SubBytes
-				for(j=0; j<8; j++){
-					key_schedule[r_i][k][j][0]=s[key_schedule[r_i][k][j][0]];
 				}
 
 				//XOR with round constant (Rcon)
