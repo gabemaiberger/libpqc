@@ -17,12 +17,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <malloc.h>
 #include <sha3.h>
 
 unsigned char *pbkdf2_derive_key(unsigned char *password, unsigned char *salt, int c, int len);
-unsigned char *pbkdf2_function(unsigned char *password, unsigned char *salt, int c, long int i);
+unsigned char *pbkdf2_function(unsigned char *password, unsigned char *salt, int c, int i);
 unsigned char *hmac_sha3(unsigned char *key, unsigned char *message);
 
 unsigned char *pbkdf2_derive_key(unsigned char *password, unsigned char *salt, int c, int len){
@@ -34,47 +35,44 @@ unsigned char *pbkdf2_derive_key(unsigned char *password, unsigned char *salt, i
 	int i;
 	for(i=0; i<n; i++){
 		t[i]=pbkdf2_function(password, salt, c, i);
-		memset(key+i*64, (long int)t[i], 64);
+		memcpy(key+(i*64), t[i], 64);
 	}
 
 	return key;
 }
 
-unsigned char *pbkdf2_function(unsigned char *password, unsigned char *salt, int c, long int i){
-	unsigned char *u[c];
-	unsigned char u_final[64];
-	unsigned char *f=malloc(64);
+unsigned char *pbkdf2_function(unsigned char *password, unsigned char *salt, int c, int i){
+	unsigned char *u_prev;
+	unsigned char *u_final=malloc(64);
 
 	int j;
 	int k;
 	for(j=0; j<c; j++){
 		if(j==0){
-			strcat(salt, (unsigned char *)&i);
-			u[j]=hmac_sha3(password, salt);
+			salt[63]=(uint8_t)i;
+			u_prev=hmac_sha3(password, salt);
 			for(k=0; k<64; k++){
-				u_final[k]=u[j][k];
+				u_final[k]=u_prev[k];
 			}
 		} else {
-			u[j]=hmac_sha3(password, u[j-1]);
+			u_prev=hmac_sha3(password, u_prev);
 			for(k=0; k<64; k++){
-				u_final[k]^=u[j][k];
+				u_final[k]^=u_prev[k];
 			}
 		}
 	}
 
-	memcpy(f, u_final, 64);
-
-	return f;
+	return u_final;
 }
 
 unsigned char *hmac_sha3(unsigned char *key, unsigned char *message){
 	int size=sizeof(key)/sizeof(key[0]);
 
 	if(size>64){
-		key=sha3_512(key,64);
+		key=sha3_512(key, 64);
 		size=64;
 	} else if(size<64){
-		strncat(key, (unsigned char *)"\x00", 64-size);
+		strncat(key, "\x00", 64-size);
 		size=64;
 	}
 
@@ -83,15 +81,20 @@ unsigned char *hmac_sha3(unsigned char *key, unsigned char *message){
 
 	int i;
 	for(i=0; i<64; i++){
-		memset((i_key_pad+i), (long int)(0x36*64)^(long int)key[i], 1);
-		memset((o_key_pad+i), (long int)(0x5c*64)^(long int)key[i], 1);
+		i_key_pad[i]=(unsigned char)((0x36*64)^key[i]);
+		o_key_pad[i]=(unsigned char)((0x5c*64)^key[i]);
 	}
 
-	strcat(i_key_pad, message);
+	memcpy(i_key_pad+64, message, 64);
+
 	unsigned char *i_key_pad_hash=sha3_512(i_key_pad, 128);
-	strcat(o_key_pad, i_key_pad_hash);
+
+	memcpy(o_key_pad+64, i_key_pad_hash, 64);
 
 	unsigned char *hash=sha3_512(o_key_pad, 128);
+
+	free(i_key_pad);
+	free(o_key_pad);
 
 	return hash;
 }
