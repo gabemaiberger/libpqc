@@ -91,10 +91,14 @@ unsigned char *sha3_512(unsigned char *data, int size){
 
 	free(S);
 
-	for(i=0; i<64; i++){
+	for(i=0; i<n; i++){
+		free(p[i]);
+	}
+
+	/*for(i=0; i<64; i++){
 		printf("%x ", Z[i]);
 	}
-	printf("\n\n");
+	printf("\n\n");*/
 
 	return Z;
 }
