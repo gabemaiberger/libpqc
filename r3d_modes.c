@@ -314,38 +314,59 @@ void r3d_decrypt_xex(unsigned char *ciphertext, unsigned char *key, unsigned cha
 
 void r3d_encrypt_ctr_mt(unsigned char *plaintext, unsigned char *key, unsigned char *iv, unsigned char *ciphertext, int size, int num_threads){
 	int block_num=(size/512); //calculate the number of blocks in the plaintext
+	int blocks_remaining=block_num;
 	int i;
 	int j;
 
 	pthread_t tid[num_threads];
 	ctr_args args[num_threads];
+	pthread_attr_t attr;
+	struct sched_param param;
+
 	for(i=0; i<num_threads; i++){
 		args[i]=(ctr_args){plaintext, ciphertext, key, iv, i};
 	}
 
+	pthread_attr_init(&attr);
+	param.sched_priority=99;
+	pthread_attr_setschedparam(&attr, &param);
+
+	pthread_mutex_init(&mutex, NULL);
 	for(i=0; i<=block_num; i+=num_threads){
 		for(j=0; j<num_threads; j++){
 			args[j].i=i+j;
-			pthread_create(&tid[j], NULL, ctr_encrypt_thread, &args[j]);
+			pthread_create(&tid[j], &attr, ctr_encrypt_thread, &args[j]);
 		}
 		for(j=0; j<num_threads; j++){
 			pthread_join(tid[j], NULL);
 		}
 		printf("%d\n", i);
+		blocks_remaining-=num_threads;
 	}
+	pthread_attr_destroy(&attr);
+	pthread_mutex_destroy(&mutex);
 }
 
 void r3d_decrypt_ctr_mt(unsigned char *ciphertext, unsigned char *key, unsigned char *iv, unsigned char *plaintext, int size, int num_threads){
 	int block_num=(size/512); //calculate the number of blocks in the ciphertext
+	int blocks_remaining=block_num;
 	int i;
 	int j;
 
 	pthread_t tid[num_threads];
 	ctr_args args[num_threads];
+	pthread_attr_t attr;
+	struct sched_param param;
+
 	for(i=0; i<num_threads; i++){
 		args[i]=(ctr_args){plaintext, ciphertext, key, iv, i};
 	}
 
+	pthread_attr_init(&attr);
+	param.sched_priority=99;
+	pthread_attr_setschedparam(&attr, &param);
+
+	pthread_mutex_init(&mutex, NULL);
 	for(i=0; i<=block_num; i+=num_threads){
 		for(j=0; j<num_threads; j++){
 			args[j].i=i+j;
@@ -355,7 +376,10 @@ void r3d_decrypt_ctr_mt(unsigned char *ciphertext, unsigned char *key, unsigned 
 			pthread_join(tid[j], NULL);
 		}
 		printf("%d\n", i);
+		blocks_remaining-=num_threads;
 	}
+	pthread_attr_destroy(&attr);
+	pthread_mutex_destroy(&mutex);
 }
 
 void *ctr_encrypt_thread(void *vargp){
@@ -423,51 +447,71 @@ void *ctr_decrypt_thread(void *vargp){
 
 void r3d_encrypt_xex_mt(unsigned char *plaintext, unsigned char *key, unsigned char *ciphertext, int size, int num_threads){
 	int block_num=(size/512); //calculate the number of blocks in the plaintext
+	int blocks_remaining=block_num;
 	int i;
 	int j;
 
 	pthread_t tid[num_threads];
 	xex_args args[num_threads];
+	pthread_attr_t attr;
+	struct sched_param param;
+
 	for(i=0; i<num_threads; i++){
 		args[i]=(xex_args){plaintext, ciphertext, key, i};
 	}
 
+	pthread_attr_init(&attr);
+	param.sched_priority=99;
+	pthread_attr_setschedparam(&attr, &param);
+
 	pthread_mutex_init(&mutex, NULL);
-	for(i=0; i<=block_num; i+=num_threads){
+	for(i=0; i<block_num; i+=num_threads){
 		for(j=0; j<num_threads; j++){
 			args[j].i=i+j;
-			pthread_create(&tid[j], NULL, xex_encrypt_thread, &args[j]);
+			pthread_create(&tid[j], &attr, xex_encrypt_thread, &args[j]);
 		}
 		for(j=0; j<num_threads; j++){
 			pthread_join(tid[j], NULL);
 		}
 		printf("%d\n", i);
+		blocks_remaining-=num_threads;
 	}
+	pthread_attr_destroy(&attr);
 	pthread_mutex_destroy(&mutex);
 }
 
 void r3d_decrypt_xex_mt(unsigned char *ciphertext, unsigned char *key, unsigned char *plaintext, int size, int num_threads){
 	int block_num=(size/512); //calculate the number of blocks in the ciphertext
+	int blocks_remaining=block_num;
 	int i;
 	int j;
 
 	pthread_t tid[num_threads];
 	xex_args args[num_threads];
+	pthread_attr_t attr;
+	struct sched_param param;
+
 	for(i=0; i<num_threads; i++){
 		args[i]=(xex_args){plaintext, ciphertext, key, i};
 	}
 
+	pthread_attr_init(&attr);
+	param.sched_priority=99;
+	pthread_attr_setschedparam(&attr, &param);
+
 	pthread_mutex_init(&mutex, NULL);
-	for(i=0; i<=block_num; i+=num_threads){
+	for(i=0; i<block_num; i+=num_threads){
 		for(j=0; j<num_threads; j++){
 			args[j].i=i+j;
-			pthread_create(&tid[j], NULL, xex_decrypt_thread, &args[j]);
+			pthread_create(&tid[j], &attr, xex_decrypt_thread, &args[j]);
 		}
 		for(j=0; j<num_threads; j++){
 			pthread_join(tid[j], NULL);
 		}
 		printf("%d\n", i);
+		blocks_remaining-=num_threads;
 	}
+	pthread_attr_destroy(&attr);
 	pthread_mutex_destroy(&mutex);
 }
 
@@ -555,6 +599,6 @@ void *xex_decrypt_thread(void *vargp){
 
 	//copy the plaintext block to the plaintext buffer
 	memcpy(args->plaintext+(args->i*512), plaintext_block, 512);
-	
+
 	pthread_exit(0);
 }
