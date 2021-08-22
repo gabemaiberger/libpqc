@@ -1,6 +1,6 @@
 /*
 R3D Cipher
-Copyright (C) 2017-2020 Gabriel Nathan Maiberger
+Copyright (C) 2017-2021 Gabriel Nathan Maiberger
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
