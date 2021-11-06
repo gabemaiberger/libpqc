@@ -2,7 +2,7 @@ Basics
 ------
 Key Size: 4096-bit
 State: 8x8x8 matrix
-Rounds: 16
+Rounds: 50
 
 InitialRound
 ------------
@@ -11,12 +11,10 @@ InitialRound
 Round
 -----
 1. SubBytes
-If Odd Round:
-	2. ShiftRows
-If Even Round:
-	2. ShiftSlices
-3. MixColumns
-4. AddRoundKey
+2. ShiftRows
+3. ShiftSlices
+4. MixColumns
+5. AddRoundKey
 
 FinalRound
 ----------
@@ -26,13 +24,11 @@ FinalRound
 
 InvRound
 --------
-If Odd Round:
-	1. InvShiftSlices
-If Even Round:
-	1. InvShiftRows
-2. InvSubBytes
-3. AddRoundKey
-4. InvMixColumns
+1. InvShiftSlices
+2. InvShiftRows
+3. InvSubBytes
+4. AddRoundKey
+5. InvMixColumns
 
 InvFinalRound
 -------------
