@@ -104,7 +104,8 @@ KeyScheduler Round
 ------------------
 1. Multiple of 512
 	1. W(i)=RotQuadWord(SubBytes(W(i-1)) XOR W(i-64) XOR Rcon(i)
+	2. ShiftRows
 2. Not a multiple
 	1. W(i)=W(i-1) XOR W(i-64)
 	2. ShiftRows
-
+3. ShiftSlices

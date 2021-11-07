@@ -16,8 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-void r3d_encrypt_block(unsigned char plaintext_block[512], unsigned char key[512], unsigned char ciphertext_block[512]);
-void r3d_decrypt_block(unsigned char ciphertext_block[512], unsigned char key[512], unsigned char plaintext_block[512]);
+unsigned char *r3d_encrypt_block(unsigned char *data_block, unsigned char *key);
+unsigned char *r3d_decrypt_block(unsigned char *data_block, unsigned char *key);
 
 void SubBytes();
 void InvSubBytes();
@@ -86,7 +86,7 @@ unsigned char master_key[8][8][8]; //master key
 unsigned char key_schedule[51][8][8][8]; //key schedule
 
 //encrypt one block (512 bytes) of data
-void r3d_encrypt_block(unsigned char plaintext_block[512], unsigned char key[512], unsigned char ciphertext_block[512]){
+unsigned char *r3d_encrypt_block(unsigned char *data_block, unsigned char *key){
 	int i;
 	int j;
 	int k;
@@ -95,7 +95,7 @@ void r3d_encrypt_block(unsigned char plaintext_block[512], unsigned char key[512
 	for(k=0; k<8; k++){
 		for(j=0; j<8; j++){
 			for(i=0; i<8; i++){
-				state[k][i][j]=plaintext_block[(k*8+j)*8+i];
+				state[k][i][j]=data_block[(k*8+j)*8+i];
 				master_key[k][j][i]=key[(k*8+j)*8+i];
 			}
 		}
@@ -124,14 +124,16 @@ void r3d_encrypt_block(unsigned char plaintext_block[512], unsigned char key[512
 	for(k=0; k<8; k++){
 		for(j=0; j<8; j++){
 			for(i=0; i<8; i++){
-				ciphertext_block[(k*8+j)*8+i]=state[k][i][j];
+				data_block[(k*8+j)*8+i]=state[k][i][j];
 			}
 		}
 	}
+	
+	return data_block;
 }
 
 //decrypt one block (512 bytes) of data
-void r3d_decrypt_block(unsigned char ciphertext_block[512], unsigned char key[512], unsigned char plaintext_block[512]){
+unsigned char *r3d_decrypt_block(unsigned char *data_block, unsigned char *key){
 	int i;
 	int j;
 	int k;
@@ -140,7 +142,7 @@ void r3d_decrypt_block(unsigned char ciphertext_block[512], unsigned char key[51
 	for(k=0; k<8; k++){
 		for(j=0; j<8; j++){
 			for(i=0; i<8; i++){
-				state[k][i][j]=ciphertext_block[(k*8+j)*8+i];
+				state[k][i][j]=data_block[(k*8+j)*8+i];
 				master_key[k][j][i]=key[(k*8+j)*8+i];
 			}
 		}
@@ -169,10 +171,12 @@ void r3d_decrypt_block(unsigned char ciphertext_block[512], unsigned char key[51
 	for(k=0; k<8; k++){
 		for(j=0; j<8; j++){
 			for(i=0; i<8; i++){
-				plaintext_block[(k*8+j)*8+i]=state[k][i][j];
+				data_block[(k*8+j)*8+i]=state[k][i][j];
 			}
 		}
 	}
+	
+	return data_block;
 }
 
 //substitute bytes
@@ -454,6 +458,16 @@ void ExpandKey(){
 						key_schedule[r_i][0][j][i]=key_schedule[r_i][0][j][i-1]^key_schedule[r_i-1][0][j][i];
 					}
 				}
+				
+				//shift rows of current slice
+				for(j=1; j<8; j++){
+					for(i=0; i<8; i++){
+						temp[i]=key_schedule[r_i][k][j][(i+j)%8]; //shift to the left j times 
+					}
+					for(i=0; i<8; i++){
+						key_schedule[r_i][k][j][i]=temp[i]; //store the result
+					}
+				}
 			} else if(k>0){
 				//XOR with slice of previous round
 				for(j=0; j<8; j++){
@@ -474,6 +488,17 @@ void ExpandKey(){
 					for(i=0; i<8; i++){
 						key_schedule[r_i][k][j][i]=temp[i]; //store the result
 					}
+				}
+			}
+		}
+		
+		for(i=0; i<8; i++){
+			for(j=1; j<8; j++){
+				for(k=0; k<8; k++){
+					temp[k]=key_schedule[r_i][(k+j)%8][j][i]; //shift backward j times
+				}
+				for(k=0; k<8; k++){
+					key_schedule[r_i][k][j][i]=temp[k]; //store the result
 				}
 			}
 		}
