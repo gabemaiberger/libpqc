@@ -12,8 +12,8 @@ Round
 -----
 1. SubBytes
 2. ShiftRows
-3. ShiftSlices
-4. MixColumns
+3. MixColumns
+4. MixSlices
 5. AddRoundKey
 
 FinalRound
@@ -24,10 +24,10 @@ FinalRound
 
 InvRound
 --------
-1. InvShiftSlices
-2. InvShiftRows
-3. InvSubBytes
-4. AddRoundKey
+1. InvShiftRows
+2. InvSubBytes
+3. AddRoundKey
+4. MixSlices
 5. InvMixColumns
 
 InvFinalRound
@@ -78,8 +78,8 @@ D0|D4 5B 28 CD 87 4C C7 1B 90 BB 9E 8E FC 4F 86 E9
 E0|E1 EA ED E8 B5 08 A2 81 BF 34 03 64 AF 93 92 E4
 F0|30 7D FE 18 D5 F7 78 D9 24 A8 00 65 9D 58 97 99
 
-MixColumns
-----------
+MixColumns/MixSlices
+--------------------
 02 01 03 01 01 01 01 01
 01 03 01 01 01 01 01 02
 03 01 01 01 01 01 02 01
@@ -89,8 +89,8 @@ MixColumns
 01 01 02 01 03 01 01 01
 01 02 01 03 01 01 01 01
 
-InvMixColumns
--------------
+InvMixColumns/InvMixSlices
+--------------------------
 0E 01 09 01 0D 01 0B 01
 01 09 01 0D 01 0B 01 0E
 09 01 0D 01 0B 01 0E 01
@@ -108,4 +108,3 @@ KeyScheduler Round
 2. Not a multiple
 	1. W(i)=W(i-1) XOR W(i-64)
 	2. ShiftRows
-3. ShiftSlices

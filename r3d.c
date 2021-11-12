@@ -23,10 +23,10 @@ void SubBytes();
 void InvSubBytes();
 void ShiftRows();
 void InvShiftRows();
-void ShiftSlices();
-void InvShiftSlices();
 void MixColumns();
 void InvMixColumns();
+void MixSlices();
+void InvMixSlices();
 void AddRoundKey(unsigned int r);
 void ExpandKey();
 
@@ -109,15 +109,14 @@ unsigned char *r3d_encrypt_block(unsigned char *data_block, unsigned char *key){
 	for(i=1; i<=49; i++){
 		SubBytes();
 		ShiftRows();
-		ShiftSlices();
 		MixColumns();
+		MixSlices();
 		AddRoundKey(i);
 	}
 
 	//final round
 	SubBytes();
 	ShiftRows();
-	ShiftSlices();
 	AddRoundKey(50);
 
 	//copy the state into the ciphertext block
@@ -154,15 +153,14 @@ unsigned char *r3d_decrypt_block(unsigned char *data_block, unsigned char *key){
 
 	//one round of decryption
 	for(i=49; i>=1; i--){
-		InvShiftSlices();
 		InvShiftRows();
 		InvSubBytes();
 		AddRoundKey(i);
+		InvMixSlices();
 		InvMixColumns();
 	}
 
 	//final round
-	InvShiftSlices();
 	InvShiftRows();
 	InvSubBytes();
 	AddRoundKey(0);
@@ -242,44 +240,6 @@ void InvShiftRows(){
 			}
 			for(i=0; i<8; i++){
 				state[k][j][i]=temp[i]; //store the result
-			}
-		}
-	}
-}
-
-//shift state slices
-void ShiftSlices(){
-	int i;
-	int j;
-	int k;
-	unsigned char temp[8];
-
-	for(i=0; i<8; i++){
-		for(j=1; j<8; j++){
-			for(k=0; k<8; k++){
-				temp[k]=state[(k+j)%8][j][i]; //shift backward j times
-			}
-			for(k=0; k<8; k++){
-				state[k][j][i]=temp[k]; //store the result
-			}
-		}
-	}
-}
-
-//inverse shift state slices
-void InvShiftSlices(){
-	int i;
-	int j;
-	int k;
-	unsigned char temp[8];
-
-	for(i=0; i<8; i++){
-		for(j=1; j<8; j++){
-			for(k=0; k<8; k++){
-				temp[(k+j)%8]=state[k][j][i]; //shift forward j times
-			}
-			for(k=0; k<8; k++){
-				state[k][j][i]=temp[k]; //store the result
 			}
 		}
 	}
@@ -387,6 +347,112 @@ void InvMixColumns(){
 				state[k][7][i]=temp_state[k][0][i]^gmul(temp_state[k][1][i], 11)^temp_state[k][2][i]^ \
 				gmul(temp_state[k][3][i], 13)^temp_state[k][4][i]^gmul(temp_state[k][5][i], 9)^ \
 				temp_state[k][6][i]^gmul(temp_state[k][7][i], 14);
+		}
+	}
+}
+
+//mix slices of state
+void MixSlices(){
+	int i;
+	int j;
+	int k;
+
+	unsigned char temp_state[8][8][8];
+
+	for(k=0; k<8; k++){
+		for(j=0; j<8; j++){
+			for(i=0; i<8; i++){
+				temp_state[k][j][i]=state[k][j][i]; //backup our state
+			}
+		}
+	}
+
+	for(j=0; j<8; j++){
+		for(i=0; i<8; i++){
+				state[0][j][i]=gmul(temp_state[0][j][i], 2)^temp_state[1][j][i]^gmul(temp_state[2][j][i], 3)^ \
+				temp_state[3][j][i]^temp_state[4][j][i]^temp_state[5][j][i]^ \
+				temp_state[6][j][i]^temp_state[7][j][i];
+
+				state[1][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 2)^temp_state[2][j][i]^ \
+				gmul(temp_state[3][j][i], 3)^temp_state[4][j][i]^temp_state[5][j][i]^ \
+				temp_state[6][j][i]^temp_state[7][j][i];
+
+				state[2][j][i]=temp_state[0][j][i]^temp_state[1][j][i]^gmul(temp_state[2][j][i], 2)^ \
+				temp_state[3][j][i]^gmul(temp_state[4][j][i], 3)^temp_state[5][j][i]^ \
+				temp_state[6][j][i]^temp_state[7][j][i];
+
+				state[3][j][i]=temp_state[0][j][i]^temp_state[1][j][i]^temp_state[2][j][i]^ \
+				gmul(temp_state[3][j][i], 2)^temp_state[4][j][i]^gmul(temp_state[5][j][i], 3)^ \
+				temp_state[6][j][i]^temp_state[7][j][i];
+
+				state[4][j][i]=temp_state[0][j][i]^temp_state[1][j][i]^temp_state[2][j][i]^ \
+				temp_state[3][j][i]^gmul(temp_state[4][j][i], 2)^temp_state[5][j][i]^ \
+				gmul(temp_state[6][j][i], 3)^temp_state[7][j][i];
+
+				state[5][j][i]=temp_state[0][j][i]^temp_state[1][j][i]^temp_state[2][j][i]^ \
+				temp_state[3][j][i]^temp_state[4][j][i]^gmul(temp_state[5][j][i], 2)^ \
+				temp_state[6][j][i]^gmul(temp_state[7][j][i], 3);
+
+				state[6][j][i]=gmul(temp_state[0][j][i], 3)^temp_state[1][j][i]^temp_state[2][j][i]^ \
+				temp_state[3][j][i]^temp_state[4][j][i]^temp_state[5][j][i]^ \
+				gmul(temp_state[6][j][i], 2)^temp_state[7][j][i];
+
+				state[7][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 3)^temp_state[2][j][i]^
+				temp_state[3][j][i]^temp_state[4][j][i]^temp_state[5][j][i]^ \
+				temp_state[6][j][i]^gmul(temp_state[7][j][i], 2);
+		}
+	}
+}
+
+//inverse mix slices of state
+void InvMixSlices(){
+	int i;
+	int j;
+	int k;
+
+	unsigned char temp_state[8][8][8];
+
+	for(k=0; k<8; k++){
+		for(j=0; j<8; j++){
+			for(i=0; i<8; i++){
+				temp_state[k][j][i]=state[k][j][i];
+			}
+		}
+	}
+
+	for(j=0; j<8; j++){
+		for(i=0; i<8; i++){
+				state[0][j][i]=gmul(temp_state[0][j][i], 14)^temp_state[1][j][i]^gmul(temp_state[2][j][i], 11)^ \
+				temp_state[3][j][i]^gmul(temp_state[4][j][i], 13)^temp_state[5][j][i]^ \
+				gmul(temp_state[6][j][i], 9)^temp_state[7][j][i];
+
+				state[1][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 14)^temp_state[2][j][i]^ \
+				gmul(temp_state[3][j][i], 11)^temp_state[4][j][i]^gmul(temp_state[5][j][i], 13)^ \
+				temp_state[6][j][i]^gmul(temp_state[7][j][i], 9);
+
+				state[2][j][i]=gmul(temp_state[0][j][i], 9)^temp_state[1][j][i]^gmul(temp_state[2][j][i], 14)^ \
+				temp_state[3][j][i]^gmul(temp_state[4][j][i], 11)^temp_state[5][j][i]^ \
+				gmul(temp_state[6][j][i], 13)^temp_state[7][j][i];
+
+				state[3][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 9)^temp_state[2][j][i]^ \
+				gmul(temp_state[3][j][i], 14)^temp_state[4][j][i]^gmul(temp_state[5][j][i],11)^ \
+				temp_state[6][j][i]^gmul(temp_state[7][j][i],13);
+
+				state[4][j][i]=gmul(temp_state[0][j][i], 13)^temp_state[1][j][i]^gmul(temp_state[2][j][i], 9)^ \
+				temp_state[3][j][i]^gmul(temp_state[4][j][i], 14)^temp_state[5][j][i]^ \
+				gmul(temp_state[6][j][i], 11)^temp_state[7][j][i];
+
+				state[5][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 13)^temp_state[2][j][i]^ \
+				gmul(temp_state[3][j][i], 9)^temp_state[4][j][i]^gmul(temp_state[5][j][i], 14)^ \
+				temp_state[6][j][i]^gmul(temp_state[7][j][i], 11);
+
+				state[6][j][i]=gmul(temp_state[0][j][i], 11)^temp_state[1][j][i]^gmul(temp_state[2][j][i], 13)^ \
+				temp_state[3][j][i]^gmul(temp_state[4][j][i], 9)^temp_state[5][j][i]^ \
+				gmul(temp_state[6][j][i], 14)^temp_state[7][j][i];
+
+				state[7][j][i]=temp_state[0][j][i]^gmul(temp_state[1][j][i], 11)^temp_state[2][j][i]^ \
+				gmul(temp_state[3][j][i], 13)^temp_state[4][j][i]^gmul(temp_state[5][j][i], 9)^ \
+				temp_state[6][j][i]^gmul(temp_state[7][j][i], 14);
 		}
 	}
 }
