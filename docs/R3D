@@ -27,7 +27,7 @@ InvRound
 1. InvShiftRows
 2. InvSubBytes
 3. AddRoundKey
-4. MixSlices
+4. InvMixSlices
 5. InvMixColumns
 
 InvFinalRound
