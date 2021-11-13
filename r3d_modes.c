@@ -84,56 +84,32 @@ pthread_mutex_t mutex;
 void r3d_encrypt_ecb(unsigned char *plaintext, unsigned char *key, unsigned char *ciphertext, int size){
 	int block_num=(size/512); //calculate the number of blocks in the plaintext
 
-	unsigned char *plaintext_block=malloc(512); //plaintext block
-	unsigned char *ciphertext_block=malloc(512); //ciphertext block
-	//unsigned char *key_block; //key block
-
-	//memcpy(key_block, key, 512); //copy the cryptographic key to the key block
-
 	int i;
 	for(i=0; i<=block_num; i++){
-		//copy a block from the plaintext buffer to the plaintext block
-		memcpy(plaintext_block, plaintext+(i*512), 512);
+		//encrypt the data block
+		unsigned char *data_block=r3d_encrypt_block(plaintext+(i*512), key);
 
-		//encrypt the plaintext block
-		ciphertext_block=r3d_encrypt_block(plaintext+(i*512), key);
-
-		//copy the ciphertext block to the ciphertext buffer
-		memcpy(ciphertext+(i*512), ciphertext_block, 512);
+		//copy the data block to the ciphertext buffer
+		memcpy(ciphertext+(i*512), data_block, 512);
 
 		printf("%d\n", i); //print the iteration we are on
 	}
-	
-	free(plaintext_block);
-	free(ciphertext_block);
 }
 
 //Electronic CodeBlock (ECB) Mode Decryption
 void r3d_decrypt_ecb(unsigned char *ciphertext, unsigned char *key, unsigned char *plaintext, int size){
 	int block_num=(size/512); //calculate the number of blocks in the ciphertext
 
-	unsigned char *ciphertext_block=malloc(512); //ciphertext block
-	unsigned char *plaintext_block=malloc(512); //plaintext block
-	//unsigned char key_block[512]; //key block
-
-	//memcpy(key_block, key, 512); //copy the cryptographic key to the key block
-
 	int i;
 	for(i=0; i<=block_num; i++){
-		//copy a block from the ciphertext buffer to the ciphertext block
-		memcpy(ciphertext_block, ciphertext+(i*512), 512);
+		//decrypt the data block
+		unsigned char *data_block=r3d_decrypt_block(ciphertext+(i*512), key);
 
-		//decrypt the ciphertext block
-		plaintext_block=r3d_decrypt_block(ciphertext_block, key);
-
-		//copy the plaintext block to the plaintext buffer
-		memcpy(plaintext+(i*512), plaintext_block, 512);
+		//copy the data block to the plaintext buffer
+		memcpy(plaintext+(i*512), data_block, 512);
 
 		printf("%d\n", i); //print the iteration we are on
 	}
-	
-	free(ciphertext_block);
-	free(plaintext_block);
 }
 
 //Counter (CTR) Mode Encryption
@@ -178,11 +154,11 @@ void r3d_encrypt_ctr(unsigned char *plaintext, unsigned char *key, unsigned char
 		printf("%d\n", i); //print the iteration we are on
 	}
 
-	free(plaintext_block);
-	free(ciphertext_block);
-	free(i_block);
-	free(temp_block);
-	free(keystream);
+	//free(plaintext_block);
+	//free(ciphertext_block);
+	//free(i_block);
+	//free(temp_block);
+	//free(keystream);
 }
 
 //Counter (CTR) Mode Decryption
@@ -227,25 +203,18 @@ void r3d_decrypt_ctr(unsigned char *ciphertext, unsigned char *key, unsigned cha
 		printf("%d\n", i); //print the iteration we are on
 	}
 	
-	free(plaintext_block);
-	free(ciphertext_block);
-	free(i_block);
-	free(temp_block);
-	free(keystream);
+	//free(plaintext_block);
+	//free(ciphertext_block);
+	//free(i_block);
+	//free(temp_block);
+	//free(keystream);
 }
 
 //XOR-Encrypt-XOR (XEX) Mode Encryption
 void r3d_encrypt_xex(unsigned char *plaintext, unsigned char *key, unsigned char *ciphertext, int size){
 	int block_num=(size/512); //calculate the number of blocks in the plaintext
 
-	unsigned char *plaintext_block=malloc(512); //plaintext block
-	unsigned char *ciphertext_block=malloc(512); //ciphertext block
-	//unsigned char key_block[512]; //key block
-
 	unsigned int *i_block=malloc(512); //counter block
-	unsigned char *x_block=malloc(512); //x block
-
-	//memcpy(key_block, key, 512); //copy the cryptographic key to the key block
 
 	int i;
 	int j;
@@ -253,53 +222,40 @@ void r3d_encrypt_xex(unsigned char *plaintext, unsigned char *key, unsigned char
 		memcpy(i_block, &i, sizeof(i)); //copy the integer i to the counter block
 
 		//encrypt the counter block to produce the x block
-		x_block=r3d_encrypt_block((unsigned char *)i_block, key);
+		unsigned char *x_block=r3d_encrypt_block((unsigned char *)i_block, key);
 
 		//multiply the x block by 2 over GF(2^8)
 		for(j=0; j<512; j++){
 			x_block[j]=gf256[x_block[j]];
 		}
 
-		//copy a block from the plaintext buffer to the plaintext block
-		memcpy(plaintext_block, plaintext+(i*512), 512);
-
-		//XOR the plaintext block with the x block
+		//XOR the plaintext with the x block
 		for(j=0; j<512; j++){
-			plaintext_block[j]^=x_block[j];
+			(plaintext+(i*512))[j]^=x_block[j];
 		}
 
- 		//encrypt the plaintext block
-		ciphertext_block=r3d_encrypt_block(plaintext_block, key);
+ 		//encrypt the plaintext
+		unsigned char *data_block=r3d_encrypt_block(plaintext+(i*512), key);
 
-		//XOR the ciphertext block with the x block
+		//XOR the data block with the x block
 		for(j=0; j<512; j++){
-			ciphertext_block[j]^=x_block[j];
+			data_block[j]^=x_block[j];
 		}
 
-		//copy the ciphertext block to the ciphertext buffer
-		memcpy(ciphertext+(i*512), ciphertext_block, 512);
+		//copy the data block to the ciphertext buffer
+		memcpy(ciphertext+(i*512), data_block, 512);
 
 		printf("%d\n", i); //print the iteration we are on
 	}
-	
-	//free(plaintext_block);
-	//free(ciphertext_block);
+
 	//free(i_block);
-	//free(x_block);
 }
 
 //XOR-Encrypt-XOR (XEX) Mode Decryption
 void r3d_decrypt_xex(unsigned char *ciphertext, unsigned char *key, unsigned char *plaintext, int size){
 	int block_num=(size/512); //calculate the number of blocks in the ciphertext
 
-	unsigned char *plaintext_block=malloc(512); //plaintext block
-	unsigned char *ciphertext_block=malloc(512); //ciphertext block
-	//unsigned char key_block[512]; //key block
-
 	unsigned int *i_block=malloc(512); //counter block
-	unsigned char *x_block=malloc(512); //x block
-
-	//memcpy(key_block, key, 512); //copy the cryptographic key to the key block
 
 	int i;
 	int j;
@@ -307,39 +263,33 @@ void r3d_decrypt_xex(unsigned char *ciphertext, unsigned char *key, unsigned cha
 		memcpy(i_block, &i, sizeof(i)); ///copy the integer i to the counter block
 
 		//encrypt the counter block to produce the x block
-		x_block=r3d_encrypt_block((unsigned char *)i_block, key);
+		unsigned char *x_block=r3d_encrypt_block((unsigned char *)i_block, key);
 
 		//multiply the x block by 2 over GF(2^8)
 		for(j=0; j<512; j++){
 			x_block[j]=gf256[x_block[j]];
 		}
 
-		//copy a block from the ciphertext buffer to the ciphertext block
-		memcpy(ciphertext_block, ciphertext+(i*512), 512);
-
-		//XOR the ciphertext block with the x block
+		//XOR the ciphertext with the x block
 		for(j=0; j<512; j++){
-			ciphertext_block[j]^=x_block[j];
+			(ciphertext+(i*512))[j]^=x_block[j];
 		}
 
-		//decrypt the ciphertext block
-		plaintext_block=r3d_decrypt_block(ciphertext_block, key);
+		//decrypt the ciphertext
+		unsigned char *data_block=r3d_decrypt_block(ciphertext+(i*512), key);
 
-		//XOR the plaintext block with the x block
+		//XOR the data block with the x block
 		for(j=0; j<512; j++){
-			plaintext_block[j]^=x_block[j];
+			data_block[j]^=x_block[j];
 		}
 
-		//copy the plaintext block to the plaintext buffer
-		memcpy(plaintext+(i*512), plaintext_block, 512);
+		//copy the data block to the plaintext buffer
+		memcpy(plaintext+(i*512), data_block, 512);
 
 		printf("%d\n", i); //print the iteration we are on
 	}
 	
-	//free(plaintext_block);
-	//free(ciphertext_block);
 	//free(i_block);
-	//free(x_block);
 }
 
 void r3d_encrypt_ctr_mt(unsigned char *plaintext, unsigned char *key, unsigned char *iv, unsigned char *ciphertext, int size, int num_threads){
@@ -497,35 +447,33 @@ void r3d_encrypt_xex_mt(unsigned char *plaintext, unsigned char *key, unsigned c
 	xex_args args[num_threads];
 	pthread_attr_t attr;
 	struct sched_param param;
+	
 	cpu_set_t cpuset;
+	for(i=1; i<16; i++){
+		CPU_SET(i, &cpuset);
+	}
 
 	for(i=0; i<num_threads; i++){
 		args[i]=(xex_args){plaintext, ciphertext, key, i};
 	}
-	
-	//CPU_ZERO(&cpuset);
 
 	pthread_attr_init(&attr);
 	param.sched_priority=99;
 	//pthread_attr_setaffinity_np(&attr, sizeof(cpuset), &cpuset);
 	pthread_attr_setschedparam(&attr, &param);
-			
-	pthread_mutex_init(&mutex, NULL);
+	
 	for(i=0; i<=block_num; i+=num_threads){
 		for(j=0; j<num_threads; j++){
 			args[j].i=i+j;
 			pthread_create(&tid[j], &attr, xex_encrypt_thread, &args[j]);
 		}
 		for(j=0; j<num_threads; j++){
-			//CPU_ZERO(&cpuset);
-			//CPU_SET(j, &cpuset);
 			pthread_join(tid[j], NULL);
 		}
 		printf("%d\n", i);
 		blocks_remaining-=num_threads;
 	}
 	pthread_attr_destroy(&attr);
-	pthread_mutex_destroy(&mutex);
 }
 
 void r3d_decrypt_xex_mt(unsigned char *ciphertext, unsigned char *key, unsigned char *plaintext, int size, int num_threads){
@@ -538,129 +486,101 @@ void r3d_decrypt_xex_mt(unsigned char *ciphertext, unsigned char *key, unsigned 
 	xex_args args[num_threads];
 	pthread_attr_t attr;
 	struct sched_param param;
-	cpu_set_t cpuset;
 
+	cpu_set_t cpuset;
+	for(i=1; i<16; i++){
+		CPU_SET(i, &cpuset);
+	}
+	
 	for(i=0; i<num_threads; i++){
 		args[i]=(xex_args){plaintext, ciphertext, key, i};
 	}
-	
-	//CPU_ZERO(&cpuset);
 
 	pthread_attr_init(&attr);
 	param.sched_priority=99;
 	//pthread_attr_setaffinity_np(&attr, sizeof(cpuset), &cpuset);
 	pthread_attr_setschedparam(&attr, &param);
 
-	pthread_mutex_init(&mutex, NULL);
 	for(i=0; i<=block_num; i+=num_threads){
 		for(j=0; j<num_threads; j++){
 			args[j].i=i+j;
 			pthread_create(&tid[j], &attr, xex_decrypt_thread, &args[j]);
 		}
 		for(j=0; j<num_threads; j++){
-			//CPU_ZERO(&cpuset);
-			//CPU_SET(j, &cpuset);
 			pthread_join(tid[j], NULL);
 		}
 		printf("%d\n", i);
 		blocks_remaining-=num_threads;
 	}
 	pthread_attr_destroy(&attr);
-	pthread_mutex_destroy(&mutex);
 }
 
 void *xex_encrypt_thread(void *vargp){
-	unsigned char *plaintext_block=malloc(512); //plaintext block
-	unsigned char *ciphertext_block=malloc(512); //ciphertext block
-	//unsigned char key_block[512]; //key block
 	unsigned int *i_block=malloc(512); //counter block
-	unsigned char *x_block=malloc(512); //x block
 
 	xex_args *args=vargp;
 
 	int j;
 
-	//memcpy(key_block, args->key, 512); //copy the cryptographic key to the key block
 	memcpy(i_block, &args->i, sizeof(args->i)); //copy the integer i to the counter block
-	memcpy(plaintext_block, args->plaintext+(args->i*512), 512); //copy a block from the plaintext buffer to the plaintext block
 
-	pthread_mutex_lock(&mutex);
-	x_block=r3d_encrypt_block(i_block, args->key); //encrypt the counter block to produce the x block
-	pthread_mutex_unlock(&mutex);
+	unsigned char *x_block=r3d_encrypt_block(i_block, args->key); //encrypt the counter block to produce the x block
 
 	//multiply the x block by 2 over GF(2^8)
 	for(j=0; j<512; j++){
 		x_block[j]=gf256[x_block[j]];
 	}
 
-	//XOR the plaintext block with the x block
+	//XOR the plaintext with the x block
 	for(j=0; j<512; j++){
-		plaintext_block[j]^=x_block[j];
+		(args->plaintext+(args->i*512))[j]^=x_block[j];
 	}
 
-	pthread_mutex_lock(&mutex);
-	ciphertext_block=r3d_encrypt_block(plaintext_block, args->key); //encrypt the plaintext block
-	pthread_mutex_unlock(&mutex);
+	unsigned char *data_block=r3d_encrypt_block(args->plaintext+(args->i*512), args->key); //encrypt the plaintext block
 
-	//XOR the ciphertext block with the x block
+	//XOR the data block with the x block
 	for(j=0; j<512; j++){
-		ciphertext_block[j]^=x_block[j];
+		data_block[j]^=x_block[j];
 	}
 
-	//copy the ciphertext block to the ciphertext buffer
-	memcpy(args->ciphertext+(args->i*512), ciphertext_block, 512);
+	//copy the data block to the ciphertext buffer
+	memcpy(args->ciphertext+(args->i*512), data_block, 512);
 
-	//free(plaintext_block);
-	//free(ciphertext_block);
 	//free(i_block);
-	//free(x_block);
 	pthread_exit(0);
 }
 
 void *xex_decrypt_thread(void *vargp){
-	unsigned char *plaintext_block=malloc(512); //plaintext block
-	unsigned char *ciphertext_block=malloc(512); //ciphertext block
-	//unsigned char key_block[512]; //key block
 	unsigned int *i_block=malloc(512); //counter block
-	unsigned char *x_block=malloc(512); //x block
 
 	xex_args *args=vargp;
 
 	int j;
 
-	//memcpy(key_block, args->key, 512); //copy the cryptographic key to the key block
 	memcpy(i_block, &args->i, sizeof(args->i)); //copy the integer i to the counter block
-	memcpy(ciphertext_block, args->ciphertext+(args->i*512), 512); //copy a block from the ciphertext buffer to the ciphertext block
 
-	pthread_mutex_lock(&mutex);
-	x_block=r3d_encrypt_block(i_block, args->key); //encrypt the counter block to produce the x block
-	pthread_mutex_unlock(&mutex);
+	unsigned char *x_block=r3d_encrypt_block(i_block, args->key); //encrypt the counter block to produce the x block
 
 	//multiply the x block by 2 over GF(2^8)
 	for(j=0; j<512; j++){
 		x_block[j]=gf256[x_block[j]];
 	}
 
-	//XOR the ciphertext block with the x block
+	//XOR the ciphertext with the x block
 	for(j=0; j<512; j++){
-		ciphertext_block[j]^=x_block[j];
+		(args->ciphertext+(args->i*512))[j]^=x_block[j];
 	}
 
-	pthread_mutex_lock(&mutex);
-	plaintext_block=r3d_decrypt_block(ciphertext_block, args->key); //decrypt the ciphertext block
-	pthread_mutex_unlock(&mutex);
+	unsigned char *data_block=r3d_decrypt_block(args->ciphertext+(args->i*512), args->key); //decrypt the ciphertext block
 
-	//XOR the plaintext block with the x block
+	//XOR the data block with the x block
 	for(j=0; j<512; j++){
-		plaintext_block[j]^=x_block[j];
+		data_block[j]^=x_block[j];
 	}
 
 	//copy the plaintext block to the plaintext buffer
-	memcpy(args->plaintext+(args->i*512), plaintext_block, 512);
+	memcpy(args->plaintext+(args->i*512), data_block, 512);
 
-	//free(plaintext_block);
-	//free(ciphertext_block);
 	//free(i_block);
-	//free(x_block);
 	pthread_exit(0);
 }
