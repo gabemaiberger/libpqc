@@ -19,16 +19,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 unsigned char *r3d_encrypt_block(unsigned char *data_block, unsigned char *key);
 unsigned char *r3d_decrypt_block(unsigned char *data_block, unsigned char *key);
 
-void SubBytes();
-void InvSubBytes();
-void ShiftRows();
-void InvShiftRows();
-void MixColumns();
-void InvMixColumns();
-void MixSlices();
-void InvMixSlices();
-void AddRoundKey(unsigned int r);
-void ExpandKey();
+void SubBytes(unsigned char state[8][8][8]);
+void InvSubBytes(unsigned char state[8][8][8]);
+void ShiftRows(unsigned char state[8][8][8]);
+void InvShiftRows(unsigned char state[8][8][8]);
+void MixColumns(unsigned char state[8][8][8]);
+void InvMixColumns(unsigned char state[8][8][8]);
+void MixSlices(unsigned char state[8][8][8]);
+void InvMixSlices(unsigned char state[8][8][8]);
+void AddRoundKey(unsigned char state[8][8][8], unsigned char key_schedule[51][8][8][8], unsigned int r);
+void ExpandKey(unsigned char master_key[8][8][8], unsigned char key_schedule[51][8][8][8]);
 
 unsigned char gmul(unsigned char x, unsigned char y);
 
@@ -80,13 +80,13 @@ const unsigned char rcon[51] = { //round constants
 0xE8, 0xCB, 0x8D
 };
 
-unsigned char state[8][8][8]; //temporary state for algorithm
-
-unsigned char master_key[8][8][8]; //master key
-unsigned char key_schedule[51][8][8][8]; //key schedule
-
 //encrypt one block (512 bytes) of data
 unsigned char *r3d_encrypt_block(unsigned char *data_block, unsigned char *key){
+	unsigned char state[8][8][8]; //temporary state for algorithm
+
+	unsigned char master_key[8][8][8]; //master key
+	unsigned char key_schedule[51][8][8][8]; //key schedule
+
 	int i;
 	int j;
 	int k;
@@ -102,22 +102,22 @@ unsigned char *r3d_encrypt_block(unsigned char *data_block, unsigned char *key){
 	}
 
 	//initial round
-	ExpandKey();
-	AddRoundKey(0);
+	ExpandKey(master_key, key_schedule);
+	AddRoundKey(state, key_schedule, 0);
 
 	//one round of encryption
 	for(i=1; i<=49; i++){
-		SubBytes();
-		ShiftRows();
-		MixColumns();
-		MixSlices();
-		AddRoundKey(i);
+		SubBytes(state);
+		ShiftRows(state);
+		MixColumns(state);
+		MixSlices(state);
+		AddRoundKey(state, key_schedule, i);
 	}
 
 	//final round
-	SubBytes();
-	ShiftRows();
-	AddRoundKey(50);
+	SubBytes(state);
+	ShiftRows(state);
+	AddRoundKey(state, key_schedule, 50);
 
 	//copy the state into the ciphertext block
 	for(k=0; k<8; k++){
@@ -133,6 +133,11 @@ unsigned char *r3d_encrypt_block(unsigned char *data_block, unsigned char *key){
 
 //decrypt one block (512 bytes) of data
 unsigned char *r3d_decrypt_block(unsigned char *data_block, unsigned char *key){
+	unsigned char state[8][8][8]; //temporary state for algorithm
+
+	unsigned char master_key[8][8][8]; //master key
+	unsigned char key_schedule[51][8][8][8]; //key schedule
+
 	int i;
 	int j;
 	int k;
@@ -148,22 +153,22 @@ unsigned char *r3d_decrypt_block(unsigned char *data_block, unsigned char *key){
 	}
 
 	//initial round
-	ExpandKey();
-	AddRoundKey(50);
+	ExpandKey(master_key, key_schedule);
+	AddRoundKey(state, key_schedule, 50);
 
 	//one round of decryption
 	for(i=49; i>=1; i--){
-		InvShiftRows();
-		InvSubBytes();
-		AddRoundKey(i);
-		InvMixSlices();
-		InvMixColumns();
+		InvShiftRows(state);
+		InvSubBytes(state);
+		AddRoundKey(state, key_schedule, i);
+		InvMixSlices(state);
+		InvMixColumns(state);
 	}
 
 	//final round
-	InvShiftRows();
-	InvSubBytes();
-	AddRoundKey(0);
+	InvShiftRows(state);
+	InvSubBytes(state);
+	AddRoundKey(state, key_schedule, 0);
 
 	//copy the state into the plaintext block
 	for(k=0; k<8; k++){
@@ -178,7 +183,7 @@ unsigned char *r3d_decrypt_block(unsigned char *data_block, unsigned char *key){
 }
 
 //substitute bytes
-void SubBytes(){
+void SubBytes(unsigned char state[8][8][8]){
 	int i;
 	int j;
 	int k;
@@ -193,7 +198,7 @@ void SubBytes(){
 }
 
 //inverse substitute bytes
-void InvSubBytes(){
+void InvSubBytes(unsigned char state[8][8][8]){
 	int i;
 	int j;
 	int k;
@@ -208,7 +213,7 @@ void InvSubBytes(){
 }
 
 //shift state rows
-void ShiftRows(){
+void ShiftRows(unsigned char state[8][8][8]){
 	int i;
 	int j;
 	int k;
@@ -227,7 +232,7 @@ void ShiftRows(){
 }
 
 //inverse shift state rows
-void InvShiftRows(){
+void InvShiftRows(unsigned char state[8][8][8]){
 	int i;
 	int j;
 	int k;
@@ -246,7 +251,7 @@ void InvShiftRows(){
 }
 
 //mix columns of state
-void MixColumns(){
+void MixColumns(unsigned char state[8][8][8]){
 	int i;
 	int j;
 	int k;
@@ -299,7 +304,7 @@ void MixColumns(){
 }
 
 //inverse mix columns of state
-void InvMixColumns(){
+void InvMixColumns(unsigned char state[8][8][8]){
 	int i;
 	int j;
 	int k;
@@ -352,7 +357,7 @@ void InvMixColumns(){
 }
 
 //mix slices of state
-void MixSlices(){
+void MixSlices(unsigned char state[8][8][8]){
 	int i;
 	int j;
 	int k;
@@ -405,7 +410,7 @@ void MixSlices(){
 }
 
 //inverse mix slices of state
-void InvMixSlices(){
+void InvMixSlices(unsigned char state[8][8][8]){
 	int i;
 	int j;
 	int k;
@@ -458,7 +463,7 @@ void InvMixSlices(){
 }
 
 //add the round key to the state
-void AddRoundKey(unsigned int r){
+void AddRoundKey(unsigned char state[8][8][8], unsigned char key_schedule[51][8][8][8], unsigned int r){
 	int i;
 	int j;
 	int k;
@@ -473,7 +478,7 @@ void AddRoundKey(unsigned int r){
 }
 
 //expand the key
-void ExpandKey(){
+void ExpandKey(unsigned char master_key[8][8][8], unsigned char key_schedule[51][8][8][8]){
 	int i;
 	int j;
 	int k;
