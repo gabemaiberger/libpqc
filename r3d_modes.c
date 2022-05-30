@@ -120,7 +120,7 @@ void r3d_encrypt_ctr(unsigned char *plaintext, unsigned char *key, unsigned char
 	unsigned char *ciphertext_block=malloc(512); //ciphertext block
 	//unsigned char key_block[512]; //key block
 	//unsigned char iv_block[512]; //initialization vector (iv) block
-	unsigned int *i_block=malloc(512); //counter block
+	unsigned char *i_block=malloc(512); //counter block
 	unsigned char *temp_block=malloc(512); //temporary block
 	unsigned char *keystream=malloc(512);
 
@@ -169,7 +169,7 @@ void r3d_decrypt_ctr(unsigned char *ciphertext, unsigned char *key, unsigned cha
 	unsigned char *ciphertext_block=malloc(512); //ciphertext block
 	//unsigned char key_block[512]; //key block
 	//unsigned char iv_block[512]; //initialization vector (iv) block
-	unsigned int *i_block=malloc(512); //counter block
+	unsigned char *i_block=malloc(512); //counter block
 	unsigned char *temp_block=malloc(512); //temporary block
 	unsigned char *keystream=malloc(512);
 
@@ -202,7 +202,7 @@ void r3d_decrypt_ctr(unsigned char *ciphertext, unsigned char *key, unsigned cha
 
 		printf("%d\n", i); //print the iteration we are on
 	}
-	
+
 	//free(plaintext_block);
 	//free(ciphertext_block);
 	//free(i_block);
@@ -214,7 +214,7 @@ void r3d_decrypt_ctr(unsigned char *ciphertext, unsigned char *key, unsigned cha
 void r3d_encrypt_xex(unsigned char *plaintext, unsigned char *key, unsigned char *ciphertext, int size){
 	int block_num=(size/512); //calculate the number of blocks in the plaintext
 
-	unsigned int *i_block=malloc(512); //counter block
+	unsigned char *i_block=calloc(512, 1); //counter block
 
 	int i;
 	int j;
@@ -248,14 +248,14 @@ void r3d_encrypt_xex(unsigned char *plaintext, unsigned char *key, unsigned char
 		printf("%d\n", i); //print the iteration we are on
 	}
 
-	//free(i_block);
+	free(i_block);
 }
 
 //XOR-Encrypt-XOR (XEX) Mode Decryption
 void r3d_decrypt_xex(unsigned char *ciphertext, unsigned char *key, unsigned char *plaintext, int size){
 	int block_num=(size/512); //calculate the number of blocks in the ciphertext
 
-	unsigned int *i_block=malloc(512); //counter block
+	unsigned char *i_block=calloc(512, 1); //counter block
 
 	int i;
 	int j;
@@ -288,8 +288,8 @@ void r3d_decrypt_xex(unsigned char *ciphertext, unsigned char *key, unsigned cha
 
 		printf("%d\n", i); //print the iteration we are on
 	}
-	
-	//free(i_block);
+
+	free(i_block);
 }
 
 void r3d_encrypt_ctr_mt(unsigned char *plaintext, unsigned char *key, unsigned char *iv, unsigned char *ciphertext, int size, int num_threads){
@@ -367,7 +367,7 @@ void *ctr_encrypt_thread(void *vargp){
 	unsigned char *ciphertext_block=malloc(512);
 	//unsigned char key_block[512];
 	//unsigned char iv_block[512];
-	unsigned int *i_block=malloc(512);
+	unsigned char *i_block=malloc(512);
 	unsigned char *temp_block=malloc(512);
 	unsigned char *keystream=malloc(512);
 
@@ -404,7 +404,7 @@ void *ctr_decrypt_thread(void *vargp){
 	unsigned char *ciphertext_block=malloc(512);
 	//unsigned char key_block[512];
 	//unsigned char iv_block[512];
-	unsigned int *i_block=malloc(512);
+	unsigned char *i_block=malloc(512);
 	unsigned char *temp_block=malloc(512);
 	unsigned char *keystream=malloc(512);
 
@@ -516,7 +516,7 @@ void r3d_decrypt_xex_mt(unsigned char *ciphertext, unsigned char *key, unsigned 
 }
 
 void *xex_encrypt_thread(void *vargp){
-	unsigned int *i_block=malloc(512); //counter block
+	unsigned char *i_block=calloc(512, 1); //counter block
 
 	xex_args *args=vargp;
 
@@ -546,12 +546,12 @@ void *xex_encrypt_thread(void *vargp){
 	//copy the data block to the ciphertext buffer
 	memcpy(args->ciphertext+(args->i*512), data_block, 512);
 
-	//free(i_block);
+	free(i_block);
 	pthread_exit(0);
 }
 
 void *xex_decrypt_thread(void *vargp){
-	unsigned int *i_block=malloc(512); //counter block
+	unsigned char *i_block=calloc(512, 1); //counter block
 
 	xex_args *args=vargp;
 
@@ -581,6 +581,6 @@ void *xex_decrypt_thread(void *vargp){
 	//copy the plaintext block to the plaintext buffer
 	memcpy(args->plaintext+(args->i*512), data_block, 512);
 
-	//free(i_block);
+	free(i_block);
 	pthread_exit(0);
 }
