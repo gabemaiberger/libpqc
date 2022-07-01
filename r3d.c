@@ -23,6 +23,8 @@ void SubBytes(unsigned char state[8][8][8]);
 void InvSubBytes(unsigned char state[8][8][8]);
 void ShiftRows(unsigned char state[8][8][8]);
 void InvShiftRows(unsigned char state[8][8][8]);
+void ShiftSlices(unsigned char state[8][8][8]);
+void InvShiftSlices(unsigned char state[8][8][8]);
 void MixColumns(unsigned char state[8][8][8]);
 void InvMixColumns(unsigned char state[8][8][8]);
 void MixSlices(unsigned char state[8][8][8]);
@@ -109,6 +111,7 @@ unsigned char *r3d_encrypt_block(unsigned char *data_block, unsigned char *key){
 	for(i=1; i<=49; i++){
 		SubBytes(state);
 		ShiftRows(state);
+		ShiftSlices(state);
 		MixColumns(state);
 		MixSlices(state);
 		AddRoundKey(state, key_schedule, i);
@@ -117,6 +120,7 @@ unsigned char *r3d_encrypt_block(unsigned char *data_block, unsigned char *key){
 	//final round
 	SubBytes(state);
 	ShiftRows(state);
+	ShiftSlices(state);
 	AddRoundKey(state, key_schedule, 50);
 
 	//copy the state into the ciphertext block
@@ -158,6 +162,7 @@ unsigned char *r3d_decrypt_block(unsigned char *data_block, unsigned char *key){
 
 	//one round of decryption
 	for(i=49; i>=1; i--){
+		InvShiftSlices(state);
 		InvShiftRows(state);
 		InvSubBytes(state);
 		AddRoundKey(state, key_schedule, i);
@@ -166,6 +171,7 @@ unsigned char *r3d_decrypt_block(unsigned char *data_block, unsigned char *key){
 	}
 
 	//final round
+	InvShiftSlices(state);
 	InvShiftRows(state);
 	InvSubBytes(state);
 	AddRoundKey(state, key_schedule, 0);
@@ -245,6 +251,44 @@ void InvShiftRows(unsigned char state[8][8][8]){
 			}
 			for(i=0; i<8; i++){
 				state[k][j][i]=temp[i]; //store the result
+			}
+		}
+	}
+}
+
+//shift state slices
+void ShiftSlices(unsigned char state[8][8][8]){
+	int i;
+	int j;
+	int k;
+	unsigned char temp[8];
+
+	for(i=0; i<8; i++){
+		for(j=1; j<8; j++){
+			for(k=0; k<8; k++){
+				temp[k]=state[(k+j)%8][j][i]; //shift backward j times
+			}
+			for(k=0; k<8; k++){
+				state[k][j][i]=temp[k]; //store the result
+			}
+		}
+	}
+}
+
+//inverse shift state slices
+void InvShiftSlices(unsigned char state[8][8][8]){
+	int i;
+	int j;
+	int k;
+	unsigned char temp[8];
+
+	for(i=0; i<8; i++){
+		for(j=1; j<8; j++){
+			for(k=0; k<8; k++){
+				temp[(k+j)%8]=state[k][j][i]; //shift forward j times
+			}
+			for(k=0; k<8; k++){
+				state[k][j][i]=temp[k]; //store the result
 			}
 		}
 	}
